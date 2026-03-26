@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokéHub Competitivo</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/sidebar.css" />
+  <link rel="stylesheet" href="css/sections.css" />
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside id="sidebar" class="sidebar">
+
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">⬟</span>
+        <span class="logo-text">PokéHub</span>
+      </div>
+      <button id="sidebar-close" class="icon-btn" title="Cerrar menú">✕</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="inicio">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Inicio</span>
+      </a>
+      <a href="#" class="nav-item" data-section="combate">
+        <span class="nav-icon">🎮</span>
+        <span class="nav-label">Combate</span>
+      </a>
+      <a href="#" class="nav-item" data-section="calculadora">
+        <span class="nav-icon">🧮</span>
+        <span class="nav-label">Calculadora de daño</span>
+      </a>
+      <a href="#" class="nav-item" data-section="tipos">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-label">Calculadora de tipos</span>
+      </a>
+      <a href="#" class="nav-item" data-section="constructor">
+        <span class="nav-icon">🛡️</span>
+        <span class="nav-label">Constructor de equipos</span>
+      </a>
+      <a href="#" class="nav-item" data-section="equipos">
+        <span class="nav-icon">💾</span>
+        <span class="nav-label">Mis equipos</span>
+      </a>
+      <a href="#" class="nav-item" data-section="glosario">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Glosario y guías</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>PokéHub v1.0</span>
+    </div>
+
+  </aside>
+
+  <!-- Fondo oscuro al abrir sidebar en móvil -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- ========== LAYOUT PRINCIPAL ========== -->
+  <div id="app" class="app">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button id="sidebar-open" class="icon-btn" title="Abrir menú">☰</button>
+      <h1 id="page-title" class="page-title">Inicio</h1>
+      <button id="lang-toggle-btn" onclick="cycleLang()" class="icon-btn lang-btn" title="Cambiar idioma" style="margin-left:auto;font-size:12px;font-weight:700;min-width:60px">🌍 ES</button>
+    </header>
+
+    <!-- Contenido -->
+    <main class="main-content">
+
+      <!-- SECCIÓN: INICIO -->
+      <section id="section-inicio" class="section active">
+        <div class="section-inner">
+
+          <div class="hero">
+            <div class="hero-badge">Guía de iniciación</div>
+            <h2 class="hero-title">Bienvenido al Pokémon Competitivo</h2>
+            <p class="hero-sub">Si acabas de llegar al competitivo, estás en el sitio correcto. Aquí aprenderás todo desde cero, paso a paso, sin saltarte nada importante.</p>
+          </div>
+
+          <!-- ÍNDICE -->
+          <div class="guide-index">
+            <div class="guide-index-title">En esta guía</div>
+            <div class="guide-index-links">
+              <a href="#g1" class="guide-index-link">1. ¿Qué es el Pokémon competitivo?</a>
+              <a href="#g2" class="guide-index-link">2. Pokémon Showdown</a>
+              <a href="#g3" class="guide-index-link">3. Estadísticas: base stats</a>
+              <a href="#g4" class="guide-index-link">4. IVs — Valores Individuales</a>
+              <a href="#g5" class="guide-index-link">5. EVs — Puntos de Esfuerzo</a>
+              <a href="#g6" class="guide-index-link">6. Natures</a>
+              <a href="#g7" class="guide-index-link">7. La tabla de tipos</a>
+              <a href="#g8" class="guide-index-link">8. Roles en el equipo</a>
+              <a href="#g9" class="guide-index-link">9. Objetos competitivos</a>
+              <a href="#g10" class="guide-index-link">10. Habilidades clave</a>
+              <a href="#g11" class="guide-index-link">11. Tiers y Smogon</a>
+              <a href="#g12" class="guide-index-link">12. Cláusulas del competitivo</a>
+              <a href="#g13" class="guide-index-link">13. Tu primer equipo</a>
+            </div>
+          </div>
+
+          <!-- 1 -->
+          <div class="guide-block" id="g1">
+            <h3 class="guide-h3">1. ¿Qué es el Pokémon competitivo?</h3>
+            <p class="guide-p">El Pokémon competitivo es una capa de juego completamente distinta al juego principal. En la historia puedes ganar con tu Pokémon favorito sin pensar mucho en números. En el competitivo, cada decisión importa: qué Pokémon usas, qué movimientos llevan, qué objeto equipan y qué haces en cada turno.</p>
+            <p class="guide-p">El objetivo es construir un equipo de 6 Pokémon que funcionen juntos y enfrentarse a otros jugadores en batallas por turnos de alta estrategia. La partida no depende de la suerte (aunque algo hay) sino del conocimiento, la preparación y la capacidad de leer al rival.</p>
+            <div class="guide-tip">💡 No necesitas saber todo de golpe. Ve aprendiendo concepto a concepto y jugando partidas. La experiencia enseña más rápido que cualquier guía.</div>
+          </div>
+
+          <!-- 2 -->
+          <div class="guide-block" id="g2">
+            <h3 class="guide-h3">2. Pokémon Showdown</h3>
+            <p class="guide-p"><strong>Pokémon Showdown</strong> es el simulador de batallas online más usado en el mundo competitivo. Es completamente gratuito, funciona desde el navegador y no necesitas tener los juegos físicos ni haber entrenado ningún Pokémon.</p>
+            <p class="guide-p">Puedes crear cualquier equipo al instante con cualquier Pokémon, con los EVs, IVs, movimientos y objetos que quieras, y jugar contra otros jugadores de todo el mundo inmediatamente. También permite practicar contra la IA.</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Accede en <strong>pokemonshowdown.com</strong></div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> No hace falta registrarse para jugar (aunque se recomienda para guardar tu historial)</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> El formato más jugado es <strong>OU (OverUsed)</strong> — un buen punto de partida</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Puedes usar esta app para construir tu equipo y exportarlo directamente a Showdown</div>
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <div class="guide-block" id="g3">
+            <h3 class="guide-h3">3. Estadísticas base (Base Stats)</h3>
+            <p class="guide-p">Cada Pokémon tiene 6 estadísticas que determinan cómo se comporta en batalla: <strong>HP</strong> (vida), <strong>Ataque</strong> (daño físico), <strong>Defensa</strong> (resistencia física), <strong>Ataque Especial</strong> (daño especial), <strong>Defensa Especial</strong> (resistencia especial) y <strong>Velocidad</strong>.</p>
+            <p class="guide-p">Las stats base vienen fijas para cada especie de Pokémon y no cambian. Un Garchomp siempre tendrá 130 de Ataque base. Sobre esas stats base actúan los IVs, EVs y Natures para calcular el stat final en batalla.</p>
+            <div class="guide-example">
+              <div class="guide-example-label">Ejemplo</div>
+              Garchomp tiene 108 HP / 130 Atk / 95 Def / 80 SpAtk / 85 SpDef / 102 Spe. Su punto fuerte es el Ataque y la Velocidad. Su punto débil es el Ataque Especial. Esto define cómo se juega.
+            </div>
+          </div>
+
+          <!-- 4 -->
+          <div class="guide-block" id="g4">
+            <h3 class="guide-h3">4. IVs — Valores Individuales</h3>
+            <p class="guide-p">Los IVs (Individual Values) son los "genes" de cada Pokémon. Cada stat tiene un IV entre <strong>0 y 31</strong>. Un IV de 31 es perfecto y aporta el máximo posible a ese stat. Un IV de 0 lo reduce al mínimo.</p>
+            <p class="guide-p">En el competitivo se busca que todos los IVs sean 31 (perfectos) excepto en casos especiales. Por ejemplo, en Pokémon de Ataque Especial 0 si no van a usar ataques especiales (para reducir el daño de ciertos movimientos como Foul Play o confusión).</p>
+            <div class="guide-tip">💡 En Pokémon Showdown puedes poner los IVs que quieras directamente. En los juegos se obtienen mediante Hyper Training o crianza controlada.</div>
+          </div>
+
+          <!-- 5 -->
+          <div class="guide-block" id="g5">
+            <h3 class="guide-h3">5. EVs — Puntos de Esfuerzo</h3>
+            <p class="guide-p">Los EVs (Effort Values) son el "entrenamiento" de tu Pokémon. Se ganan derrotando Pokémon en combate o usando ciertos objetos. Cada 4 EVs en una stat suman 1 punto a esa estadística en nivel 100.</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Máximo de <strong>252 EVs</strong> en una sola stat</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Máximo de <strong>510 EVs</strong> en total (solo 508 son útiles)</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> La distribución más común es <strong>252 / 252 / 4</strong> en las stats más importantes</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Distribuciones defensivas usan spreads más equilibrados como 252 HP / 240 Def / 16 Spe</div>
+            </div>
+            <div class="guide-example">
+              <div class="guide-example-label">Ejemplo</div>
+              Un Garchomp ofensivo suele llevar 252 Ataque / 252 Velocidad / 4 HP con Nature Jolly o Adamant. Así maximiza el daño y la velocidad.
+            </div>
+          </div>
+
+          <!-- 6 -->
+          <div class="guide-block" id="g6">
+            <h3 class="guide-h3">6. Natures — Naturalezas</h3>
+            <p class="guide-p">Las Natures modifican dos stats del Pokémon: <strong>suben un 10%</strong> una stat y <strong>bajan un 10%</strong> otra. Hay 25 natures en total, 5 de las cuales son neutras (no modifican nada).</p>
+            <div class="guide-table">
+              <div class="guide-table-row guide-table-head">
+                <span>Nature</span><span>Sube (+10%)</span><span>Baja (-10%)</span>
+              </div>
+              <div class="guide-table-row"><span>Adamant</span><span>Ataque</span><span>Atk. Esp.</span></div>
+              <div class="guide-table-row"><span>Jolly</span><span>Velocidad</span><span>Atk. Esp.</span></div>
+              <div class="guide-table-row"><span>Modest</span><span>Atk. Esp.</span><span>Ataque</span></div>
+              <div class="guide-table-row"><span>Timid</span><span>Velocidad</span><span>Ataque</span></div>
+              <div class="guide-table-row"><span>Bold</span><span>Defensa</span><span>Ataque</span></div>
+              <div class="guide-table-row"><span>Calm</span><span>Def. Esp.</span><span>Ataque</span></div>
+              <div class="guide-table-row"><span>Impish</span><span>Defensa</span><span>Atk. Esp.</span></div>
+              <div class="guide-table-row"><span>Careful</span><span>Def. Esp.</span><span>Atk. Esp.</span></div>
+            </div>
+            <div class="guide-tip">💡 Regla general: si tu Pokémon ataca físicamente usa Adamant (daño) o Jolly (velocidad). Si ataca especialmente usa Modest o Timid.</div>
+          </div>
+
+          <!-- 7 -->
+          <div class="guide-block" id="g7">
+            <h3 class="guide-h3">7. La tabla de tipos</h3>
+            <p class="guide-p">Hay 18 tipos de Pokémon. Cada tipo tiene ventajas (hace el doble de daño, ×2), desventajas (hace la mitad, ×0.5) e inmunidades (no hace daño, ×0) contra otros tipos. Esta tabla define casi toda la estrategia del juego.</p>
+            <p class="guide-p">Los Pokémon pueden tener uno o dos tipos. Si un movimiento es súper efectivo contra ambos tipos del defensor, el multiplicador se acumula: ×2 × ×2 = ×4 de daño. Si uno es resistencia y otro es debilidad, se cancelan: ×2 × ×0.5 = ×1.</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>STAB</strong>: si el Pokémon usa un movimiento de su mismo tipo, hace un 50% más de daño (×1.5)</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> Puedes consultar la tabla de tipos completa en el <strong>Constructor de Equipos → Panel lateral → Tipos</strong></div>
+            </div>
+            <div class="guide-example">
+              <div class="guide-example-label">Ejemplo</div>
+              Charizard es Fuego/Volador. Un movimiento de tipo Roca le hace ×4 de daño porque Roca es super efectivo contra Fuego (×2) y contra Volador (×2). Por eso Charizard siempre teme el Stealth Rock.
+            </div>
+          </div>
+
+          <!-- 8 -->
+          <div class="guide-block" id="g8">
+            <h3 class="guide-h3">8. Roles en el equipo</h3>
+            <p class="guide-p">Un equipo competitivo combina Pokémon con distintas funciones. Conocer los roles te ayuda a construir equipos equilibrados que no tengan huecos obvios.</p>
+            <div class="guide-roles">
+              <div class="guide-role-item">
+                <div class="guide-role-name">⚔️ Sweeper</div>
+                <div class="guide-role-desc">Pokémon ofensivo que busca hacer KO al equipo rival. Puede ser físico o especial. Suele tener alta velocidad o movimientos de subida de stats.</div>
+              </div>
+              <div class="guide-role-item">
+                <div class="guide-role-name">🛡️ Wall</div>
+                <div class="guide-role-desc">Pokémon defensivo que aguanta muchos golpes. Su función es no morir y hacer daño pasivo con estados o movimientos de drena. Divide en físico o especial.</div>
+              </div>
+              <div class="guide-role-item">
+                <div class="guide-role-name">🔄 Pivot</div>
+                <div class="guide-role-desc">Pokémon que entra al campo, hace presión y sale para traer a otro compañero de forma segura con U-turn, Volt Switch o Teleport.</div>
+              </div>
+              <div class="guide-role-item">
+                <div class="guide-role-name">💣 Wallbreaker</div>
+                <div class="guide-role-desc">Pokémon con un poder ofensivo brutal que rompe a los Pokémon defensivos rivales, dejando el camino libre para el sweeper.</div>
+              </div>
+              <div class="guide-role-item">
+                <div class="guide-role-name">🪨 Hazard Setter</div>
+                <div class="guide-role-desc">Pokémon que coloca trampas de entrada (Stealth Rock, Púas) para dañar al equipo rival cada vez que cambia de Pokémon.</div>
+              </div>
+              <div class="guide-role-item">
+                <div class="guide-role-name">🧹 Spinner / Defogger</div>
+                <div class="guide-role-desc">Pokémon que limpia las trampas del campo propio. Esencial si tu equipo tiene Pokémon vulnerables al Stealth Rock.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9 -->
+          <div class="guide-block" id="g9">
+            <h3 class="guide-h3">9. Objetos competitivos más importantes</h3>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Choice Band / Specs / Scarf</strong>: multiplican Ataque, Atk.Esp o Velocidad ×1.5 pero limitan a un solo movimiento hasta que cambies.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Leftovers</strong>: recuperan 1/16 del HP máximo cada turno. El objeto defensivo por excelencia.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Heavy-Duty Boots</strong>: inmunidad total a las trampas de entrada. Revolucionó el meta en Gen 8.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Life Orb</strong>: aumenta el daño un 30% pero gasta 1/10 del HP por ataque.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Rocky Helmet</strong>: inflige 1/6 del HP al rival cuando hace contacto físico.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Focus Sash</strong>: sobrevive con 1 HP a cualquier golpe que te habría dejado KO desde HP completo.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Eviolite</strong>: multiplica Def y Def.Esp ×1.5 en Pokémon que aún pueden evolucionar. Clave para Chansey.</div>
+            </div>
+          </div>
+
+          <!-- 10 -->
+          <div class="guide-block" id="g10">
+            <h3 class="guide-h3">10. Habilidades clave</h3>
+            <p class="guide-p">Las habilidades se activan automáticamente en ciertas condiciones y pueden cambiar completamente cómo juega un Pokémon.</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Intimidate</strong>: baja el Ataque físico del rival al entrar. Clave en equipos defensivos.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Speed Boost</strong>: sube la Velocidad cada turno. Con Protect en el primer turno es devastador.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Levitate</strong>: inmunidad a movimientos de tipo Tierra. Muy valioso para cubrir debilidades.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Regenerator</strong>: recupera 1/3 del HP al salir del campo. La habilidad más poderosa del juego defensivo.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Magic Guard</strong>: sin daño indirecto (veneno, quemadura, stealth rock...). En Chansey es brutal.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Protean / Libero</strong>: cambia el tipo del Pokémon al tipo del movimiento que usa. Siempre STAB.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Multiscale</strong>: reduce el daño recibido a la mitad cuando el HP está al máximo. Dragonite y Lugia.</div>
+            </div>
+          </div>
+
+          <!-- 11 -->
+          <div class="guide-block" id="g11">
+            <h3 class="guide-h3">11. Tiers y Smogon</h3>
+            <p class="guide-p"><strong>Smogon</strong> es la comunidad competitiva más grande del mundo. Mantiene un sistema de tiers que clasifica a los Pokémon según su uso real en partidas, no según lo fuertes que parezcan en papel.</p>
+            <div class="guide-table">
+              <div class="guide-table-row guide-table-head"><span>Tier</span><span>Significado</span><span>Nivel</span></div>
+              <div class="guide-table-row"><span>Uber</span><span>Pokémon demasiado poderosos para OU</span><span>Máximo</span></div>
+              <div class="guide-table-row"><span>OU</span><span>OverUsed — el tier principal</span><span>Alto</span></div>
+              <div class="guide-table-row"><span>UU</span><span>UnderUsed — segundo tier</span><span>Medio-alto</span></div>
+              <div class="guide-table-row"><span>RU</span><span>RarelyUsed — tercer tier</span><span>Medio</span></div>
+              <div class="guide-table-row"><span>NU</span><span>NeverUsed — cuarto tier</span><span>Medio-bajo</span></div>
+              <div class="guide-table-row"><span>PU</span><span>El menos usado</span><span>Bajo</span></div>
+            </div>
+            <div class="guide-tip">💡 Empezar en UU o NU puede ser más fácil que OU porque hay menos Pokémon rotos y el meta es más predecible.</div>
+          </div>
+
+          <!-- 12 -->
+          <div class="guide-block" id="g12">
+            <h3 class="guide-h3">12. Cláusulas del competitivo Smogon</h3>
+            <p class="guide-p">Smogon tiene reglas adicionales llamadas cláusulas que equilibran el juego más allá de los tiers:</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Sleep Clause</strong>: solo puedes dormir a un Pokémon rival a la vez.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Species Clause</strong>: no puedes llevar dos Pokémon de la misma especie.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Evasion Clause</strong>: prohibidos los movimientos que suben evasión (Double Team, Minimize).</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>OHKO Clause</strong>: prohibidos los movimientos de KO instantáneo (Guillotine, Fisura...).</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Moody Clause</strong>: prohibida la habilidad Moody por ser demasiado aleatoria.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">→</span> <strong>Endless Battle Clause</strong>: prohibidas las combinaciones que pueden generar batallas infinitas.</div>
+            </div>
+          </div>
+
+          <!-- 13 -->
+          <div class="guide-block" id="g13">
+            <h3 class="guide-h3">13. Tu primer equipo</h3>
+            <p class="guide-p">Construir un buen primer equipo puede parecer abrumador. Sigue estos pasos y tendrás una base sólida:</p>
+            <div class="guide-list">
+              <div class="guide-list-item"><span class="guide-list-dot">1.</span> <strong>Elige un Pokémon que te guste</strong> y mira en qué tier está. Ese será tu núcleo.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">2.</span> <strong>Busca un Stealth Rocker</strong>: un Pokémon que ponga Trampa Rocas. Es casi obligatorio en todos los equipos.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">3.</span> <strong>Añade un pivot</strong> con U-turn o Volt Switch para mantener el momentum.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">4.</span> <strong>Incluye un spinner o defogger</strong> para limpiar tus propias trampas si las necesitas.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">5.</span> <strong>Analiza las debilidades de tipo</strong> de tus 4 primeros Pokémon y busca 2 que las cubran.</div>
+              <div class="guide-list-item"><span class="guide-list-dot">6.</span> <strong>Prueba en Showdown</strong>, juega 10 partidas, anota qué te cuesta más sobrevivir y ajusta.</div>
+            </div>
+            <div class="guide-tip">💡 Smogon tiene análisis detallados de cada Pokémon con movesets recomendados. Búscalos en <strong>smogon.com/dex</strong> para inspirarte sin copiar ciegamente.</div>
+          </div>
+
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN: MIS EQUIPOS -->
+      <section id="section-equipos" class="section">
+        <div class="section-inner">
+          <div class="tb-topbar">
+            <h2 class="tb-title">Mis equipos guardados</h2>
+            <button id="btn-refresh-teams" class="btn-secondary">↺ Actualizar</button>
+          </div>
+          <div id="saved-teams-list" class="saved-teams-grid">
+            <div class="api-hint">Cargando equipos...</div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN: COMBATE -->
+      <section id="section-combate" class="section">
+        <div class="section-inner" style="max-width:1100px;">
+
+          <!-- Pantalla de inicio -->
+          <div id="battle-intro">
+            <div class="tb-topbar">
+              <h2 class="tb-title">🎮 Panel de combate</h2>
+              <span id="battle-status-msg" class="battle-status-inline">No conectado</span>
+            </div>
+
+            <div class="battle-setup-grid">
+              <div class="battle-setup-card">
+                <label class="editor-label">Tu nombre de entrenador</label>
+                <input type="text" id="battle-trainer-name" class="editor-input" placeholder="Ash, Misty..." value="Entrenador" />
+                <label class="editor-label" style="margin-top:10px">Formato</label>
+                <select id="battle-format" class="editor-select" style="width:100%">
+                  <option value="gen9ou">Gen 9 OU</option>
+                  <option value="gen9doublesou">Gen 9 Doubles OU</option>
+                  <option value="gen9randombattle">Gen 9 Random Battle</option>
+                  <option value="gen8ou">Gen 8 OU</option>
+                  <option value="gen8doublesou">Gen 8 Doubles OU</option>
+                  <option value="gen7ou">Gen 7 OU</option>
+                </select>
+                <label class="editor-label" style="margin-top:10px">Equipo</label>
+                <select id="battle-team-source" class="editor-select" style="width:100%">
+                  <option value="builder">Usar constructor actual</option>
+                  <option value="saved">Elegir equipo guardado</option>
+                  <option value="random">Equipo aleatorio</option>
+                </select>
+                <select id="battle-saved-team" class="editor-select" style="width:100%;margin-top:8px;display:none">
+                  <option value="">Cargando equipos...</option>
+                </select>
+              </div>
+
+              <div class="battle-setup-card">
+                <div class="battle-setup-title">Buscar batalla</div>
+                <p class="guide-p">Entra en cola y cuando haya otro jugador disponible empieza la batalla automáticamente.</p>
+                <button id="battle-find-btn" class="btn-primary" style="width:100%">⚔️ Buscar rival</button>
+                <button id="battle-practice-btn" class="btn-secondary" style="width:100%;margin-top:8px">Probar contra bot</button>
+              </div>
+
+              <div class="battle-setup-card">
+                <div class="battle-setup-title">Sala privada</div>
+                <p class="guide-p">Crea una sala y comparte el ID con un amigo para jugar.</p>
+                <button id="battle-create-btn" class="btn-secondary" style="width:100%;margin-bottom:8px">➕ Crear sala</button>
+                <div id="battle-room-id" class="battle-room-id" style="display:none"></div>
+                <div style="display:flex;gap:6px;margin-top:8px">
+                  <input type="text" id="battle-join-id" class="editor-input" placeholder="ID de sala..." />
+                  <button id="battle-join-btn" class="btn-secondary">Unirse</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="guide-tip" style="margin-top:16px">
+              💡 Puedes combatir con el equipo del constructor, con uno guardado o con uno aleatorio. Los formatos dobles también están disponibles.
+            </div>
+          </div>
+
+          <!-- Arena de batalla -->
+          <div id="battle-arena" style="display:none">
+            <div class="battle-arena-layout">
+
+              <!-- Campo de batalla -->
+              <div class="battle-field">
+                <div class="battle-topbar">
+                  <span id="battle-turn" class="battle-turn-label">Turno 1</span>
+                  <button id="battle-forfeit-btn" class="btn-secondary" style="font-size:11px">Rendirse</button>
+                </div>
+                <div class="battle-platform battle-platform-opp"></div>
+                <div class="battle-platform battle-platform-own"></div>
+
+                <!-- P2 (rival) -->
+                <div class="battle-side battle-side-opp">
+                  <div class="battle-poke-info">
+                    <div id="battle-p2-name" class="battle-poke-name">Rival</div>
+                    <div id="battle-p2-poke-name" class="battle-active-name">—</div>
+                    <div class="battle-hp-wrap">
+                      <div class="battle-hp-bar-bg">
+                        <div id="battle-p2-hp-bar" class="battle-hp-bar" style="width:100%;background:#2dc76d"></div>
+                      </div>
+                      <span id="battle-p2-hp-text" class="battle-hp-text">—</span>
+                    </div>
+                  </div>
+                  <div id="battle-p2-sprite" class="battle-sprite-wrap battle-sprite-opp">
+                    <img id="battle-p2-img" src="" alt="" class="battle-poke-sprite" onerror="this.style.display='none'" />
+                  </div>
+                  <div id="battle-p2-active-strip" class="battle-active-strip"></div>
+                </div>
+
+                <!-- P1 (tú) -->
+                <div class="battle-side battle-side-own">
+                  <div id="battle-p1-sprite" class="battle-sprite-wrap battle-sprite-own">
+                    <img id="battle-p1-img" src="" alt="" class="battle-poke-sprite" onerror="this.style.display='none'" />
+                  </div>
+                  <div class="battle-poke-info battle-poke-info-own">
+                    <div id="battle-p1-name" class="battle-poke-name">Tú</div>
+                    <div id="battle-p1-poke-name" class="battle-active-name">—</div>
+                    <div class="battle-hp-wrap">
+                      <div class="battle-hp-bar-bg">
+                        <div id="battle-p1-hp-bar" class="battle-hp-bar" style="width:100%;background:#2dc76d"></div>
+                      </div>
+                      <span id="battle-p1-hp-text" class="battle-hp-text">—</span>
+                    </div>
+                  </div>
+                  <div id="battle-p1-active-strip" class="battle-active-strip battle-active-strip-own"></div>
+                </div>
+                <div id="battle-announcer" class="battle-announcer">La batalla va a comenzar.</div>
+              </div>
+
+              <!-- Panel derecho -->
+              <div class="battle-right-panel">
+                <!-- Log -->
+                <div id="battle-log" class="battle-log"></div>
+                <!-- Movimientos -->
+                <div id="battle-move-area" class="battle-move-area">
+                  <div class="battle-waiting">Esperando inicio de batalla...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECCIÓN: CALCULADORA -->
+      <section id="section-calculadora" class="section">
+        <div class="section-inner" style="max-width:1100px;">
+          <h2>Calculadora de daño</h2>
+          <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">
+            Calcula el daño exacto entre dos Pokémon. Usa los datos de Pokémon Showdown — 1380 Pokémon, 937 movimientos.
+          </p>
+          <div id="calc-section"></div>
+        </div>
+      </section>
+
+      <section id="section-tipos" class="section">
+        <div class="section-inner" style="max-width:1180px;">
+          <h2>Calculadora de tipos</h2>
+          <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">
+            Herramienta interactiva inspirada en PKMN.help para analizar matchups ofensivos y defensivos en 1v1 y 2v2.
+          </p>
+          <div id="type-calc-section"></div>
+        </div>
+      </section>
+
+
+      <!-- SECCIÓN: CONSTRUCTOR -->
+      <section id="section-constructor" class="section">
+        <div class="tb-layout">
+          <div class="tb-main">
+            <div class="tb-topbar">
+              <h2 class="tb-title">Constructor de equipos</h2>
+              <div class="tb-actions">
+                <button id="tb-export-btn" class="btn-primary">⬇ Exportar equipo</button>
+              </div>
+            </div>
+            <div id="team-grid" class="team-grid"></div>
+            <div class="tb-import-row">
+              <span class="tb-import-label">¿Ya tienes un equipo hecho?</span>
+              <button id="tb-import-btn" class="btn-import-link">Importar desde Showdown</button>
+            </div>
+            <div id="slot-editor" class="slot-editor hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN: GLOSARIO -->
+      <section id="section-glosario" class="section">
+        <div class="section-inner">
+          <h2>Glosario y base de datos</h2>
+          <p>Términos competitivos, Pokémon, movimientos, habilidades y objetos. Con enlace directo a WikiDex.</p>
+
+          <!-- Pestañas -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="terminos">📋 Términos</button>
+            <button class="tab-btn" data-tab="pokemon">🔴 Pokémon</button>
+            <button class="tab-btn" data-tab="movimientos">💥 Movimientos</button>
+            <button class="tab-btn" data-tab="habilidades">✨ Habilidades</button>
+            <button class="tab-btn" data-tab="objetos">🎒 Objetos</button>
+          </div>
+
+          <!-- TAB: Términos competitivos -->
+          <div id="tab-terminos" class="tab-content active">
+            <div class="glossary-controls">
+              <div class="glossary-search-wrap">
+                <span class="glossary-search-icon">🔍</span>
+                <input type="text" id="glossary-search" class="glossary-search" placeholder="Busca un término... (ej: STAB, hazard, wall)" />
+              </div>
+              <select id="glossary-category" class="glossary-select">
+                <option value="all">Todas las categorías</option>
+              </select>
+            </div>
+            <div class="glossary-meta">
+              <span id="glossary-count">— términos</span>
+              <span class="glossary-hint">Pulsa Esc para limpiar</span>
+            </div>
+            <div id="glossary-list" class="glossary-list"></div>
+          </div>
+
+          <!-- TAB: Pokémon -->
+          <div id="tab-pokemon" class="tab-content">
+            <div class="api-search-bar">
+              <div class="glossary-search-wrap">
+                <span class="glossary-search-icon">🔍</span>
+                <input type="text" id="pokemon-search" class="glossary-search" placeholder="Busca un Pokémon... (ej: pikachu, charizard)" />
+              </div>
+            </div>
+            <div id="pokemon-results" class="api-results"></div>
+          </div>
+
+          <!-- TAB: Movimientos -->
+          <div id="tab-movimientos" class="tab-content">
+            <div class="api-search-bar">
+              <div class="glossary-search-wrap">
+                <span class="glossary-search-icon">🔍</span>
+                <input type="text" id="move-search" class="glossary-search" placeholder="Busca en español o inglés... ej: Terremoto, dark" />
+              </div>
+            </div>
+            <div class="move-filters">
+              <select id="move-type-filter" class="glossary-select">
+                <option value="">— Todos los tipos —</option>
+                <option value="normal">Normal</option>
+                <option value="fire">Fuego</option>
+                <option value="water">Agua</option>
+                <option value="electric">Eléctrico</option>
+                <option value="grass">Planta</option>
+                <option value="ice">Hielo</option>
+                <option value="fighting">Lucha</option>
+                <option value="poison">Veneno</option>
+                <option value="ground">Tierra</option>
+                <option value="flying">Volador</option>
+                <option value="psychic">Psíquico</option>
+                <option value="bug">Bicho</option>
+                <option value="rock">Roca</option>
+                <option value="ghost">Fantasma</option>
+                <option value="dragon">Dragón</option>
+                <option value="dark">Siniestro</option>
+                <option value="steel">Acero</option>
+                <option value="fairy">Hada</option>
+              </select>
+              <select id="move-cat-filter" class="glossary-select">
+                <option value="">— Todas las categorías —</option>
+                <option value="physical">⚔️ Físico</option>
+                <option value="special">🔮 Especial</option>
+                <option value="status">💤 Estado</option>
+              </select>
+            </div>
+            <div id="move-results" class="api-results"></div>
+          </div>
+
+          <!-- TAB: Habilidades -->
+          <div id="tab-habilidades" class="tab-content">
+            <div class="api-search-bar">
+              <div class="glossary-search-wrap">
+                <span class="glossary-search-icon">🔍</span>
+                <input type="text" id="ability-search" class="glossary-search" placeholder="Busca una habilidad... (ej: intimidate, levitate)" />
+              </div>
+            </div>
+            <div id="ability-results" class="api-results"></div>
+          </div>
+
+          <!-- TAB: Objetos -->
+          <div id="tab-objetos" class="tab-content">
+            <div class="api-search-bar">
+              <div class="glossary-search-wrap">
+                <span class="glossary-search-icon">🔍</span>
+                <input type="text" id="item-search" class="glossary-search" placeholder="Busca un objeto... (ej: leftovers, choice-band)" />
+              </div>
+            </div>
+            <div id="item-results" class="api-results"></div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal Import/Export — fuera de cualquier sección -->
+  <div id="io-modal" class="hidden">
+    <div id="io-modal-overlay" class="modal-overlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="io-title" class="modal-title">Exportar equipo</h3>
+        <button id="io-close-btn" class="icon-btn">✕</button>
+      </div>
+      <p class="modal-hint">Formato compatible con Pokémon Showdown.</p>
+      <textarea id="io-textarea" class="modal-textarea" spellcheck="false" placeholder="Pega aquí tu equipo en formato Showdown..."></textarea>
+      <div class="modal-actions">
+        <button id="io-copy-btn" class="btn-secondary">Copiar</button>
+        <button id="io-do-import" class="btn-primary" style="display:none">✅ Confirmar importación</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data/translations-es.js"></script>
+  <script src="js/lang.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="data/glossary2.js"></script>
+  <script src="data/moves-index.js"></script>
+  <script src="data/sd-pokemon.js"></script>
+  <script src="data/sd-moves.js"></script>
+  <script src="data/sd-items.js"></script>
+  <script src="js/glossary.js"></script>
+  <script src="js/pokedex-search.js"></script>
+  <script src="js/teambuilder.js"></script>
+  <script src="js/battle-client.js"></script>
+  <script src="js/damage-calc.js"></script>
+  <script src="js/type-calculator.js"></script>
+  <script src="js/teams-manager.js"></script>
+</body>
+</html>

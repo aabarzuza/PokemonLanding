@@ -1,0 +1,126 @@
+/* =========================================
+   SIDEBAR.CSS — Menú lateral
+   ========================================= */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  transition: transform var(--transition);
+  overflow: hidden;
+}
+
+/* Estado cerrado: se desliza fuera de pantalla */
+body.sidebar-closed .sidebar {
+  transform: translateX(calc(-1 * var(--sidebar-width)));
+}
+
+/* ---- Cabecera del sidebar ---- */
+.sidebar-header {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+/* ---- Navegación ---- */
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Ítem activo */
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Footer del sidebar ---- */
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-hint);
+  flex-shrink: 0;
+}
+
+/* ---- Responsive: sidebar encima del contenido en móvil ---- */
+@media (max-width: 700px) {
+  .sidebar {
+    /* En móvil siempre está "sobre" el contenido */
+    transform: translateX(calc(-1 * var(--sidebar-width)));
+  }
+
+  /* Cuando el usuario lo abre en móvil */
+  body.sidebar-open-mobile .sidebar {
+    transform: translateX(0);
+  }
+
+  /* En móvil el botón de abrir siempre visible */
+  #sidebar-open {
+    display: flex !important;
+  }
+}
