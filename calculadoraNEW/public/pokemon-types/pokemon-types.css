@@ -1,0 +1,180 @@
+/* === POKEMON TYPE CALCULATOR === */
+
+#pokemon-type-calculator {
+  --fondo: #1a1a2e;
+  --tarjeta: #16213e;
+  --borde: #0f3460;
+  --texto: #e8e8e8;
+  --texto-gris: #a0a0a0;
+  
+  font-family: sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 550px;
+}
+
+/* Modos */
+.calc-modos {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modo-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: var(--tarjeta);
+  color: var(--texto-gris);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modo-btn.activo {
+  background: var(--borde);
+  color: var(--texto);
+}
+
+.modo-desc {
+  text-align: center;
+  color: var(--texto-gris);
+  font-size: 14px;
+  margin: 0 0 16px 0;
+}
+
+/* Grid de tipos */
+.calc-tipos {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.tipo-btn {
+  padding: 10px 4px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.tipo-btn:hover {
+  transform: translateY(-2px);
+}
+
+.tipo-btn.seleccionado {
+  border-color: #fff;
+}
+
+.tipo-btn.deshabilitado {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Seleccion */
+.calc-seleccion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--tarjeta);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  min-height: 50px;
+}
+
+.sin-sel, .sel-label {
+  color: var(--texto-gris);
+  font-size: 14px;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Resultados */
+.calc-resultados {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vacio {
+  color: var(--texto-gris);
+  text-align: center;
+  font-size: 14px;
+}
+
+.grupo {
+  background: var(--tarjeta);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.grupo-titulo {
+  margin-bottom: 10px;
+}
+
+.mult {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mult.x4   { background: #22c55e; color: #000; }
+.mult.x2   { background: #4ade80; color: #000; }
+.mult.x1   { background: #6b7280; color: #fff; }
+.mult.x05  { background: #f87171; color: #000; }
+.mult.x025 { background: #dc2626; color: #fff; }
+.mult.x0   { background: #1f2937; color: #9ca3af; }
+
+.grupo-tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge-mini {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Boton limpiar */
+.btn-limpiar {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  background: var(--borde);
+  border: none;
+  border-radius: 6px;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.btn-limpiar:hover {
+  background: #1a4a7a;
+}
+
+/* Responsive */
+@media (max-width: 450px) {
+  .calc-tipos {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

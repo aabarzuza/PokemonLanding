@@ -143,6 +143,26 @@ document.addEventListener('click', (event) => {
   }
 });
 
+// Los enlaces del índice de Inicio necesitan compensar el header fijo.
+document.addEventListener('click', (event) => {
+  const guideLink = event.target.closest('.guide-index-link');
+  if (!guideLink) return;
+
+  const href = guideLink.getAttribute('href') || '';
+  if (!href.startsWith('#')) return;
+
+  const target = document.querySelector(href);
+  if (!target) return;
+
+  event.preventDefault();
+
+  const header = document.querySelector('.topbar');
+  const offset = (header?.offsetHeight || 74) + 18;
+  const top = target.getBoundingClientRect().top + window.scrollY - offset;
+
+  window.scrollTo({ top, behavior: 'smooth' });
+});
+
 // Si cambia el tamaño de la pantalla, reajustamos el sidebar.
 window.addEventListener('resize', () => {
   // Guardamos cómo era antes.

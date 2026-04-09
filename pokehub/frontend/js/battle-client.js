@@ -11,6 +11,10 @@
     pendingTurn: null,
     pendingSwitch: null,
     pendingPreview: [],
+    activeTool: '',
+    compactToolTab: 'pokemon',
+    protocolQueue: [],
+    protocolTimer: null,
     sim: {
       p1: { name: 'Jugador 1', active: [], team: [] },
       p2: { name: 'Jugador 2', active: [], team: [] },
@@ -32,6 +36,9 @@
     special: 'https://play.pokemonshowdown.com/sprites/categories/Special.png',
     status: 'https://play.pokemonshowdown.com/sprites/categories/Status.png',
   };
+
+  const QUICK_TYPES = ['normal','fighting','flying','poison','ground','rock','bug','ghost','steel','fire','water','grass','electric','psychic','ice','dragon','dark','fairy'];
+  const QUICK_CHART = {normal:{rock:.5,ghost:0,steel:.5},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5,steel:2},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5,steel:.5},ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2,steel:.5},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0,dark:2,steel:2,fairy:.5},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0,fairy:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2,steel:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5,steel:.5},psychic:{fighting:2,poison:2,psychic:.5,dark:0,steel:.5},bug:{fire:.5,grass:2,fighting:.5,flying:.5,psychic:2,ghost:.5,dark:2,steel:.5,fairy:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2,steel:.5},ghost:{normal:0,psychic:2,ghost:2,dark:.5},dragon:{dragon:2,steel:.5,fairy:0},dark:{fighting:.5,psychic:2,ghost:2,dark:.5,fairy:.5},steel:{fire:.5,water:.5,electric:.5,ice:2,rock:2,steel:.5,fairy:2},fairy:{fire:.5,fighting:2,poison:.5,dragon:2,dark:2,steel:.5}};
 
   // Equipo de respaldo si el usuario no tiene uno cargado.
   const FALLBACK_TEAM = [
@@ -82,6 +89,10 @@
   function requestIndex(ident) {
     const match = `${ident || ''}`.match(/^p[12]([abc])/);
     return match ? ({ a: 0, b: 1, c: 2 }[match[1]] ?? 0) : 0;
+  }
+
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // Interpreta strings tipo "321/321 brn" o "0 fnt".
@@ -137,6 +148,11 @@
     return `https://play.pokemonshowdown.com/sprites/${folder}/${spriteId(name, slotIndex)}.png`;
   }
 
+  function fallbackSprite(name, slotIndex = null) {
+    const num = spriteNumber(name, slotIndex);
+    return num ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${num}.png` : '';
+  }
+
   function hpBarColor(percent) {
     if (percent > 50) return '#2dc76d';
     if (percent > 20) return '#f5a623';
@@ -189,6 +205,59 @@
     return { name: secondary && secondary !== primary ? `${primary} / ${secondary}` : primary, desc: desc || '' };
   }
 
+  function translationPair(category, id, fallback = '') {
+    const entry = window.TRANSLATIONS_ES?.[category]?.[id];
+    if (!entry) return { es: fallback || id, en: fallback || id };
+    const [es, en] = Array.isArray(entry) ? entry : [entry, fallback || id];
+    return { es: es || en || fallback || id, en: en || es || fallback || id };
+  }
+
+  function reverseLookup(section, value) {
+    const normalized = normalizeText(value);
+    const entries = Object.entries(window.TRANSLATIONS_ES?.[section] || {});
+    const found = entries.find(([, entry]) => {
+      const pair = Array.isArray(entry) ? entry : [entry, entry];
+      return pair.some((item) => normalizeText(item) === normalized);
+    });
+    return found?.[0] || normalizeText(value);
+  }
+
+  function normalizeSavedTeamText(text) {
+    const blocks = `${text || ''}`.trim().split(/\n\s*\n/).filter(Boolean);
+    return blocks.map((block) => {
+      const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
+      if (!lines.length) return '';
+
+      const first = lines[0];
+      const atIndex = first.indexOf('@');
+      const speciesPart = atIndex >= 0 ? first.slice(0, atIndex).trim() : first;
+      const itemPart = atIndex >= 0 ? first.slice(atIndex + 1).trim() : '';
+      const speciesMatch = speciesPart.match(/^(.*)\(([^)]+)\)$/);
+      const nickname = speciesMatch ? speciesMatch[1].trim() : '';
+      const rawSpecies = speciesMatch ? speciesMatch[2].trim() : speciesPart;
+      const speciesId = reverseLookup('pokemon', rawSpecies);
+      const itemId = itemPart ? reverseLookup('items', itemPart) : '';
+      const visibleSpecies = nickname ? `${nickname} (${speciesId})` : speciesId;
+      const normalizedLines = [itemId ? `${visibleSpecies} @ ${itemId}` : visibleSpecies];
+
+      lines.slice(1).forEach((line) => {
+        if (line.startsWith('Ability:')) {
+          const value = line.replace('Ability:', '').trim();
+          normalizedLines.push(`Ability: ${reverseLookup('abilities', value)}`);
+          return;
+        }
+        if (line.startsWith('- ')) {
+          const value = line.replace('- ', '').trim();
+          normalizedLines.push(`- ${reverseLookup('moves', value)}`);
+          return;
+        }
+        normalizedLines.push(line);
+      });
+
+      return normalizedLines.join('\n');
+    }).filter(Boolean).join('\n\n');
+  }
+
   function sidePokemon(request, index) { return request?.side?.pokemon?.[index] || null; }
   function isAlive(mon) { return !!mon && !`${mon.condition || ''}`.endsWith(' fnt'); }
   function targetTag(target) { return { ' 1': 'Rival 1', ' 2': 'Rival 2', ' -1': 'Yo', ' -2': 'Aliado' }[target] || target.trim(); }
@@ -198,12 +267,34 @@
     const id = move?.id || normalizeText(move?.move || move);
     const data = moveData(move);
     const english = data?.name || move?.move || move || id || 'Movimiento';
-    const spanish = window.getName?.(id, 'moves') || english;
-    const secondary = window.getSecName?.(id, 'moves') || '';
+    const pair = translationPair('moves', id, english);
+    return pair.es !== pair.en ? { primary: pair.es, secondary: pair.en } : { primary: pair.es, secondary: '' };
+  }
 
-    if (secondary && secondary !== spanish && secondary !== english) return { primary: spanish, secondary };
-    if (spanish !== english) return { primary: spanish, secondary: english };
-    return { primary: spanish, secondary: '' };
+  function moveTooltipInfo(move) {
+    const id = move?.id || normalizeText(move?.move || move);
+    const data = moveData(move) || {};
+    const pair = translationPair('moves', id, data.name || move?.move || id);
+    const description = window.TRANSLATIONS_ES?.moves?.[id]?.[2] || 'Sin descripción.';
+    const category = (data.category || '').toLowerCase();
+    const categoryLabel = category === 'physical'
+      ? 'Físico'
+      : category === 'special'
+        ? 'Especial'
+        : category === 'status'
+          ? 'Estado'
+          : 'Movimiento';
+    return {
+      english: pair.en || data.name || move?.move || id,
+      spanish: pair.es || pair.en || data.name || move?.move || id,
+      description,
+      power: data.power || '—',
+      accuracy: data.accuracy || '—',
+      type: (data.type || 'normal').toLowerCase(),
+      category,
+      categoryLabel,
+      categoryIcon: CATEGORY_ICONS[category] || '',
+    };
   }
 
   // Nombre del movimiento según el idioma actual.
@@ -227,6 +318,33 @@
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
     setAnnouncer(htmlToPlainText(html));
+  }
+
+  function protocolDelay(command) {
+    if (command === 'move') return 750;
+    if (['-damage', '-heal', '-status', '-curestatus', '-boost', '-unboost', 'faint'].includes(command)) return 500;
+    if (['switch', 'drag'].includes(command)) return 550;
+    if (command === 'turn') return 240;
+    return 80;
+  }
+
+  async function drainProtocolQueue() {
+    if (BC.protocolTimer) return;
+    BC.protocolTimer = true;
+
+    while (BC.protocolQueue.length) {
+      const line = BC.protocolQueue.shift();
+      const command = `${line || ''}`.split('|')[1] || '';
+      applyProtocolLine(line);
+      await wait(protocolDelay(command));
+    }
+
+    BC.protocolTimer = null;
+  }
+
+  function queueProtocolLine(line) {
+    BC.protocolQueue.push(line);
+    void drainProtocolQueue();
   }
 
   function ensureMetaRow(uiKey) {
@@ -345,11 +463,15 @@
     BC.pendingTurn = null;
     BC.pendingSwitch = null;
     BC.pendingPreview = [];
+    BC.activeTool = '';
+    BC.protocolQueue = [];
+    BC.protocolTimer = null;
     BC.sim = {
       p1: { name: 'Jugador 1', active: [], team: [] },
       p2: { name: 'Jugador 2', active: [], team: [] },
     };
     setAnnouncer('La batalla va a comenzar.');
+    renderBattleSideTool();
   }
 
   function renderMainPokemon(uiKey, activeState, ownPokemon) {
@@ -386,6 +508,15 @@
     if (imgEl) {
       imgEl.src = showdownSprite(activeState.name, ownPokemon, ownPokemon ? activeState.index : null);
       imgEl.alt = activeState.name;
+      imgEl.onerror = () => {
+        const backup = fallbackSprite(activeState.name, ownPokemon ? activeState.index : null);
+        if (backup && imgEl.src !== backup) {
+          imgEl.onerror = null;
+          imgEl.src = backup;
+          return;
+        }
+        imgEl.style.display = 'none';
+      };
       imgEl.style.display = 'block';
     }
     renderSpriteTooltip(uiKey, activeState, ownPokemon);
@@ -486,6 +617,143 @@
     }
   }
 
+  function quickEffect(attackType, defendTypes) {
+    return defendTypes.reduce((value, defendType) => value * (((QUICK_CHART[attackType] || {})[defendType]) ?? 1), 1);
+  }
+
+  function renderCompactTypeTool() {
+    const panel = q('battle-side-tool-panel');
+    if (!panel) return;
+    BC.compactTypes = BC.compactTypes?.length ? BC.compactTypes.slice(0, 2) : ['grass', 'fairy'];
+
+    if (window.PHTypeCalc?.mount) {
+      window.PHTypeCalc.mount(panel, {
+        editing: 'defense',
+        defender: BC.compactTypes,
+        attacker: ['flying'],
+        attackMode: 1,
+      }, {
+        compact: true,
+        onChange(nextState) {
+          BC.compactTypes = [...(nextState.defender || ['grass', 'fairy'])];
+        },
+      });
+      return;
+    }
+
+    panel.innerHTML = '<div class="battle-tool-result"><div class="battle-tool-result-sub">No se pudo cargar la calculadora de tipos.</div></div>';
+  }
+
+  function compactResultNames(result) {
+    const bilingual = window.getBilingualNames ? window.getBilingualNames(result) : { es: result.name_es || result.name || result.id, en: result.name || result.id };
+    return bilingual.en && bilingual.en !== bilingual.es ? `${bilingual.es} / ${bilingual.en}` : bilingual.es;
+  }
+
+  async function runCompactGlossarySearch() {
+    const panel = q('battle-side-tool-panel');
+    const input = q('battle-tool-search');
+    if (!panel || !input) return;
+
+    const query = input.value.trim();
+    const tab = BC.compactToolTab || 'pokemon';
+    if (query.length < 2) {
+      const results = panel.querySelector('.battle-tool-results');
+      if (results) results.innerHTML = '<div class="battle-tool-result"><div class="battle-tool-result-sub">Escribe al menos 2 letras.</div></div>';
+      return;
+    }
+
+    const api = window.PH_API?.[tab];
+    if (!api?.search) return;
+
+    const response = await api.search(query, { limit: 8 });
+    const results = response?.results || [];
+    const resultsBox = panel.querySelector('.battle-tool-results');
+    if (!resultsBox) return;
+
+    if (!results.length) {
+      resultsBox.innerHTML = '<div class="battle-tool-result"><div class="battle-tool-result-sub">Sin resultados.</div></div>';
+      return;
+    }
+
+    resultsBox.innerHTML = results.map((result) => {
+      if (tab === 'pokemon') {
+        const types = [result.type1, result.type2].filter(Boolean).map((type) => typeName(type)).join(' · ');
+        return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${types || 'Pokémon competitivo'}</div></button>`;
+      }
+      if (tab === 'moves') {
+        return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${typeName(result.type)} · ${result.category} · Pot ${result.power || '—'}</div></button>`;
+      }
+      return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${result.description || 'Habilidad competitiva'}</div></button>`;
+    }).join('');
+
+    resultsBox.querySelectorAll('[data-battle-tool-id]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const id = button.dataset.battleToolId;
+        const detail = await api.get(id);
+        if (!detail) return;
+        const resultsHtml = tab === 'pokemon'
+          ? `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${[detail.type1, detail.type2].filter(Boolean).map((type) => typeName(type)).join(' · ')}</div><div class="battle-tool-result-sub">HP ${detail.hp || '—'} · Atk ${detail.atk || '—'} · Def ${detail.def || '—'} · SpA ${detail.spa || '—'} · SpD ${detail.spd || '—'} · Vel ${detail.spe || '—'}</div></div>`
+          : tab === 'moves'
+            ? `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${typeName(detail.type)} · ${detail.category} · Pot ${detail.power || '—'} · Prec ${detail.accuracy || '—'} · PP ${detail.pp || '—'}</div></div>`
+            : `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${detail.description || 'Sin descripción'}</div></div>`;
+        resultsBox.innerHTML = resultsHtml;
+      });
+    });
+  }
+
+  function renderCompactGlossaryTool() {
+    const panel = q('battle-side-tool-panel');
+    if (!panel) return;
+
+    panel.innerHTML = `
+      <div class="battle-tool-tabs">
+        <button class="battle-tool-tab ${BC.compactToolTab === 'pokemon' ? 'is-active' : ''}" data-battle-tool-tab="pokemon">Pokémon</button>
+        <button class="battle-tool-tab ${BC.compactToolTab === 'moves' ? 'is-active' : ''}" data-battle-tool-tab="moves">Movs</button>
+        <button class="battle-tool-tab ${BC.compactToolTab === 'abilities' ? 'is-active' : ''}" data-battle-tool-tab="abilities">Hab.</button>
+      </div>
+      <input id="battle-tool-search" class="battle-tool-search" type="text" placeholder="Buscar..." />
+      <div class="battle-tool-results">
+        <div class="battle-tool-result"><div class="battle-tool-result-sub">Escribe al menos 2 letras.</div></div>
+      </div>
+    `;
+
+    panel.querySelectorAll('[data-battle-tool-tab]').forEach((button) => {
+      button.addEventListener('click', () => {
+        BC.compactToolTab = button.dataset.battleToolTab;
+        renderCompactGlossaryTool();
+      });
+    });
+
+    q('battle-tool-search')?.addEventListener('input', () => {
+      void runCompactGlossarySearch();
+    });
+  }
+
+  function renderBattleSideTool() {
+    const panel = q('battle-side-tool-panel');
+    const glossaryBtn = q('battle-tool-glossary-btn');
+    const typesBtn = q('battle-tool-types-btn');
+    if (!panel || !glossaryBtn || !typesBtn) return;
+
+    glossaryBtn.classList.toggle('is-active', BC.activeTool === 'glossary');
+    typesBtn.classList.toggle('is-active', BC.activeTool === 'types');
+
+    if (!BC.activeTool) {
+      panel.style.display = 'none';
+      panel.innerHTML = '';
+      return;
+    }
+
+    panel.style.display = 'block';
+    if (BC.activeTool === 'glossary') renderCompactGlossaryTool();
+    if (BC.activeTool === 'types') renderCompactTypeTool();
+  }
+
+  function toggleBattleTool(tool) {
+    BC.activeTool = BC.activeTool === tool ? '' : tool;
+    renderBattleSideTool();
+  }
+
   function animateSprite(simSide, className) {
     const el = q(`battle-${uiSide(simSide)}-sprite`);
     if (!el) return;
@@ -557,7 +825,7 @@
         updateMoveArea('<div class="battle-waiting">Esperando primer request...</div>');
         break;
       case 'protocol':
-        parseProtocol(msg.line);
+        queueProtocolLine(msg.line);
         break;
       case 'request':
         BC.myRequest = msg.request || null;
@@ -589,7 +857,7 @@
     }
   }
 
-  function parseProtocol(line) {
+  function applyProtocolLine(line) {
     if (!line || !line.startsWith('|')) return;
 
     const parts = line.split('|');
@@ -612,7 +880,7 @@
       }
       case 'move':
         playAttackAnimation((parts[2] || '').slice(0, 2));
-        addLog(`${speciesName(parts[2])} usa <strong>${window.getName?.(normalizeText(parts[3]), 'moves') || parts[3]}</strong>.`);
+        addLog(`${speciesName(parts[2])} usa <strong>${moveName({ id: normalizeText(parts[3]), move: parts[3] })}</strong>.`);
         break;
       case '-damage':
         updateActivePokemon((parts[2] || '').slice(0, 2), parts[2], parts[3]);
@@ -942,22 +1210,33 @@
       const fullMove = moveData(move) || {};
       const type = (fullMove.type || 'normal').toLowerCase();
       const color = TYPE_COLORS[type] || '#8b95a7';
-      const categoryIcon = CATEGORY_ICONS[(fullMove.category || '').toLowerCase()] || '';
-
       return targetChoices(request, activeIndex, move).map((target) => {
         const selected = BC.pendingTurn[activeIndex] === `move ${moveIndex + 1}${target}`;
-        const names = bilingualMoveNames(move);
-        const power = fullMove.power || '—';
+        const info = moveTooltipInfo(move);
         return `
           <button class="battle-move-btn ${selected ? 'is-selected' : ''}" data-move-active="${activeIndex}" data-move-slot="${moveIndex}" data-target-choice="${target}" ${move.disabled ? 'disabled' : ''} style="border-left:4px solid ${color}">
-            <div class="battle-move-name">${names.primary}</div>
-            ${names.secondary ? `<div class="battle-move-subname">${names.secondary}</div>` : ''}
+            <div class="battle-move-name">${info.english}</div>
+            <div class="battle-move-subname">${info.spanish}</div>
             <div class="battle-move-info">
               <span class="battle-move-type" style="background:${color}">${typeName(type)}</span>
-              ${categoryIcon ? `<img src="${categoryIcon}" alt="" style="height:14px" />` : ''}
-              <span class="battle-move-damage">Daño ${power}</span>
               <span class="battle-move-pp">${move.pp}/${move.maxpp} PP</span>
               ${target ? `<span class="battle-choice-tag">${targetTag(target)}</span>` : ''}
+            </div>
+            <div class="battle-move-hover-card">
+              <div class="battle-move-hover-head">
+                <div>
+                  <div class="battle-move-hover-en">${info.english}</div>
+                  <div class="battle-move-hover-es">${info.spanish}</div>
+                </div>
+                <div class="battle-move-hover-pp">${move.pp}/${move.maxpp} PP</div>
+              </div>
+              <div class="battle-move-hover-desc">${info.description}</div>
+              <div class="battle-move-hover-meta">
+                <span class="battle-move-hover-tag">Potencia ${info.power}</span>
+                <span class="battle-move-hover-tag">Precisión ${info.accuracy}</span>
+                <span class="battle-move-hover-tag battle-move-hover-tag-type" style="background:${TYPE_COLORS[info.type] || '#8b95a7'}">${typeName(info.type)}</span>
+                <span class="battle-move-hover-tag">${info.categoryIcon ? `<img src="${info.categoryIcon}" alt="" style="height:14px" />` : ''}${info.categoryLabel}</span>
+              </div>
             </div>
           </button>
         `;
@@ -1129,9 +1408,28 @@
     return shuffle(RANDOM_TEAM_POOL).slice(0, size).map((slot) => normalizePoolSlot(cloneTeamSlot(slot)));
   }
 
+  function buildPseudoRandomTeamPair(size = 6) {
+    const pool = shuffle(RANDOM_TEAM_POOL);
+    const first = pool.slice(0, size).map((slot) => normalizePoolSlot(cloneTeamSlot(slot)));
+    const secondBase = pool.slice(size, size * 2);
+
+    if (secondBase.length === size) {
+      return {
+        player: first,
+        bot: secondBase.map((slot) => normalizePoolSlot(cloneTeamSlot(slot))),
+      };
+    }
+
+    return {
+      player: first,
+      bot: buildPseudoRandomTeam(size),
+    };
+  }
+
   async function loadSavedTeams() {
     const select = q('battle-saved-team');
     if (!select) return;
+    const currentValue = select.value;
 
     const teams = await (window.PH_API?.teams.getAll?.() || Promise.resolve([]));
     BC.savedTeams = teams || [];
@@ -1139,6 +1437,10 @@
     select.innerHTML = !BC.savedTeams.length
       ? '<option value="">No hay equipos guardados</option>'
       : ['<option value="">Elige un equipo guardado</option>', ...BC.savedTeams.map((team) => `<option value="${team.id}">${team.name} · ${team.format}</option>`)].join('');
+
+    if (currentValue && BC.savedTeams.some((team) => `${team.id}` === `${currentValue}`)) {
+      select.value = currentValue;
+    }
   }
 
   function updateTeamSourceUI() {
@@ -1165,8 +1467,9 @@
         updateStatus('No se pudo cargar el equipo guardado.');
         throw new Error('bad team');
       }
+      const normalizedExport = normalizeSavedTeamText(team.export_code);
       return {
-        payload: { teamText: team.export_code, teamMode: 'saved' },
+        payload: { teamText: normalizedExport, teamMode: 'saved' },
         previewTeam: [],
         botPayload: randomFormat ? { botTeamMode: 'random' } : null,
       };
@@ -1181,8 +1484,7 @@
     }
 
     if (source === 'random' && !randomFormat) {
-      const playerRandomTeam = buildPseudoRandomTeam();
-      const botRandomTeam = buildPseudoRandomTeam();
+      const { player: playerRandomTeam, bot: botRandomTeam } = buildPseudoRandomTeamPair();
       updateStatus('Para formatos estándar uso dos equipos aleatorios legales de prueba.');
       return {
         payload: { team: playerRandomTeam, teamMode: 'builder' },
@@ -1204,7 +1506,10 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-item').forEach((item) => {
       item.addEventListener('click', () => {
-        if (item.dataset.section === 'combate' && !BC.ws) connectBattle();
+        if (item.dataset.section === 'combate') {
+          if (!BC.ws) connectBattle();
+          void loadSavedTeams();
+        }
       });
     });
 
@@ -1213,6 +1518,8 @@
     q('battle-create-btn')?.addEventListener('click', battleCreateRoom);
     q('battle-join-btn')?.addEventListener('click', battleJoinRoom);
     q('battle-team-source')?.addEventListener('change', updateTeamSourceUI);
+    q('battle-tool-glossary-btn')?.addEventListener('click', () => toggleBattleTool('glossary'));
+    q('battle-tool-types-btn')?.addEventListener('click', () => toggleBattleTool('types'));
     q('battle-forfeit-btn')?.addEventListener('click', () => {
       if (BC.ws && BC.roomId) {
         setAnnouncer('Te has rendido.');
@@ -1227,6 +1534,7 @@
 
     document.addEventListener('langchange', () => {
       renderField();
+      renderBattleSideTool();
       if (BC.myRequest) renderRequest(BC.myRequest);
     });
 

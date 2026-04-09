@@ -1,94 +1,369 @@
 (function () {
-const TYPES=['normal','fighting','flying','poison','ground','rock','bug','ghost','steel','fire','water','grass','electric','psychic','ice','dragon','dark','fairy'];
-const TYPE_EN={normal:'Normal',fighting:'Fighting',flying:'Flying',poison:'Poison',ground:'Ground',rock:'Rock',bug:'Bug',ghost:'Ghost',steel:'Steel',fire:'Fire',water:'Water',grass:'Grass',electric:'Electric',psychic:'Psychic',ice:'Ice',dragon:'Dragon',dark:'Dark',fairy:'Fairy'};
-const TYPE_ES={normal:'Normal',fighting:'Lucha',flying:'Volador',poison:'Veneno',ground:'Tierra',rock:'Roca',bug:'Bicho',ghost:'Fantasma',steel:'Acero',fire:'Fuego',water:'Agua',grass:'Planta',electric:'Eléctrico',psychic:'Psíquico',ice:'Hielo',dragon:'Dragón',dark:'Siniestro',fairy:'Hada'};
-const TYPE_COLORS={normal:'#b9b8b2',fighting:'#f58b15',flying:'#4b8dc0',poison:'#9c45ce',ground:'#9a5b1f',rock:'#b9af7a',bug:'#94a80d',ghost:'#7a4f88',steel:'#69a7c2',fire:'#ef2b2c',water:'#3884e5',grass:'#43a629',electric:'#f3bf17',psychic:'#ef3c7d',ice:'#49c0e2',dragon:'#5867da',dark:'#695450',fairy:'#d863db'};
-const CHART={normal:{rock:.5,ghost:0,steel:.5},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5,steel:2},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5,steel:.5},ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2,steel:.5},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0,dark:2,steel:2,fairy:.5},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0,fairy:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2,steel:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5,steel:.5},psychic:{fighting:2,poison:2,psychic:.5,dark:0,steel:.5},bug:{fire:.5,grass:2,fighting:.5,flying:.5,psychic:2,ghost:.5,dark:2,steel:.5,fairy:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2,steel:.5},ghost:{normal:0,psychic:2,ghost:2,dark:.5},dragon:{dragon:2,steel:.5,fairy:0},dark:{fighting:.5,psychic:2,ghost:2,dark:.5,fairy:.5},steel:{fire:.5,water:.5,electric:.5,ice:2,rock:2,steel:.5,fairy:2},fairy:{fire:.5,fighting:2,poison:.5,dragon:2,dark:2,steel:.5}};
-const STATE={attackMode:1,defenseMode:1,editing:'attack',attacker:['flying'],defender:['fighting']};
+  const TYPES = [
+    'normal', 'fighting', 'flying', 'poison', 'ground', 'rock', 'bug', 'ghost', 'steel',
+    'fire', 'water', 'grass', 'electric', 'psychic', 'ice', 'dragon', 'dark', 'fairy',
+  ];
 
-function icon(type){return `https://play.pokemonshowdown.com/sprites/types/${TYPE_EN[type]}.png`;}
-function effect(atk,defs){return defs.reduce((acc,def)=>acc*(((CHART[atk]||{})[def])??1),1);}
-function comboEffect(atks,defs){return atks.reduce((acc,atk)=>acc*effect(atk,defs),1);}
-function multLabel(v){return {0:'0x',0.25:'0.25x',0.5:'0.5x',1:'1x',2:'2x',4:'4x',8:'8x'}[v]||`${v}x`;}
-function bucket(mults){return TYPES.filter(type=>mults.includes(comboEffect(STATE.attacker,[type])));}
-function defendBucket(mults){return TYPES.filter(type=>mults.includes(effect(type,STATE.defender)));}
-function selected(list,type){return STATE[list].includes(type);}
-function pick(type){
-  const listKey=STATE.editing==='attack'?'attacker':'defender';
-  const modeKey=STATE.editing==='attack'?'attackMode':'defenseMode';
-  const limit=listKey==='defender'?2:STATE[modeKey];
-  const list=[...STATE[listKey]];
-  const i=list.indexOf(type);
-  if(i>=0){if(list.length>1)list.splice(i,1);}
-  else if(limit===1){list.splice(0,list.length,type);}
-  else if(list.length<2){list.push(type);}
-  else{list.shift();list.push(type);}
-  STATE[listKey]=list;
-  render();
-}
-function setMode(modeKey,listKey,val){STATE[modeKey]=val;if(val===1&&listKey!=='defender')STATE[listKey]=[STATE[listKey][0]];render();}
-function chip(type){return `<span class="typecalc-chip" style="--type:${TYPE_COLORS[type]}"><img class="typecalc-icon" src="${icon(type)}" alt="${TYPE_ES[type]}" /><span>${TYPE_ES[type]}</span></span>`;}
-function typeButton(type){
-  const active=selected(STATE.editing==='attack'?'attacker':'defender',type);
-  return `<button class="typecalc-pick ${active?'active':''}" data-type="${type}" style="--type:${TYPE_COLORS[type]}"><img class="typecalc-icon" src="${icon(type)}" alt="${TYPE_ES[type]}" /><span>${TYPE_ES[type]}</span></button>`;
-}
-function resultCard(title,types){
-  return `<div class="typecalc-group"><div class="typecalc-group-title">${title}</div><div class="typecalc-group-grid">${types.length?types.map(type=>`<span class="typecalc-badge" style="--type:${TYPE_COLORS[type]}"><img class="typecalc-icon" src="${icon(type)}" alt="${TYPE_ES[type]}" /><span>${TYPE_ES[type]}</span></span>`).join(''):'<span class="typecalc-empty">Ninguno</span>'}</div></div>`;
-}
-function render(){
-  const el=document.getElementById('type-calc-section');
-  if(!el)return;
-  const direct=comboEffect(STATE.attacker,STATE.defender);
-  const attackResults=[
-    resultCard('Inflige 4x a',bucket([4,8])),
-    resultCard('Inflige 2x a',bucket([2])),
-    resultCard('Inflige 1x a',bucket([1])),
-    resultCard('Inflige 0.5x / 0.25x a',bucket([0.5,0.25])),
-    resultCard('No afecta a',bucket([0])),
-  ].join('');
-  const defenseResults=[
-    resultCard('Te golpean 4x con',defendBucket([4,8])),
-    resultCard('Te golpean 2x con',defendBucket([2])),
-    resultCard('Te golpean 1x con',defendBucket([1])),
-    resultCard('Resistes 0.5x / 0.25x',defendBucket([0.5,0.25])),
-    resultCard('Eres inmune a',defendBucket([0])),
-  ].join('');
-  el.innerHTML=`<div class="typecalc-app">
-    <aside class="typecalc-sidebar">
-      <div class="typecalc-side-group">
-        <div class="typecalc-side-title">Ataque</div>
-        <button class="typecalc-side-btn ${STATE.attackMode===1?'active':''}" data-mode-key="attackMode" data-list-key="attacker" data-mode="1">Single</button>
-        <button class="typecalc-side-btn ${STATE.attackMode===2?'active':''}" data-mode-key="attackMode" data-list-key="attacker" data-mode="2">Dual</button>
+  const TYPE_EN = {
+    normal: 'Normal', fighting: 'Fighting', flying: 'Flying', poison: 'Poison',
+    ground: 'Ground', rock: 'Rock', bug: 'Bug', ghost: 'Ghost', steel: 'Steel',
+    fire: 'Fire', water: 'Water', grass: 'Grass', electric: 'Electric',
+    psychic: 'Psychic', ice: 'Ice', dragon: 'Dragon', dark: 'Dark', fairy: 'Fairy',
+  };
+
+  const TYPE_ES = {
+    normal: 'Normal', fighting: 'Lucha', flying: 'Volador', poison: 'Veneno',
+    ground: 'Tierra', rock: 'Roca', bug: 'Bicho', ghost: 'Fantasma', steel: 'Acero',
+    fire: 'Fuego', water: 'Agua', grass: 'Planta', electric: 'Electrico',
+    psychic: 'Psiquico', ice: 'Hielo', dragon: 'Dragon', dark: 'Siniestro', fairy: 'Hada',
+  };
+
+  const TYPE_COLORS = {
+    normal: '#b9b8b2', fighting: '#f58b15', flying: '#7ab0e5', poison: '#9c45ce',
+    ground: '#a5642a', rock: '#b9af7a', bug: '#94a80d', ghost: '#8e5e93',
+    steel: '#69a7c2', fire: '#ef2b2c', water: '#3884e5', grass: '#239317',
+    electric: '#f3bf17', psychic: '#ef3c7d', ice: '#49c0e2', dragon: '#5867da',
+    dark: '#695450', fairy: '#d863db',
+  };
+
+  const CHART = {
+    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
+    fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+    water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
+    grass: { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+    ice: { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
+    fighting: { normal: 2, ice: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: 0.5 },
+    poison: { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
+    ground: { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
+    flying: { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
+    psychic: { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
+    bug: { fire: 0.5, grass: 2, fighting: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
+    rock: { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
+    ghost: { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
+    dragon: { dragon: 2, steel: 0.5, fairy: 0 },
+    dark: { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
+    steel: { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
+    fairy: { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 },
+  };
+
+  const DEFAULT_STATE = {
+    attackMode: 1,
+    editing: 'defense',
+    attacker: ['flying'],
+    defender: ['poison', 'grass'],
+  };
+
+  function safeTypes(list = []) {
+    return list.filter((type) => TYPES.includes(type)).slice(0, 2);
+  }
+
+  function cloneState(seed = {}) {
+    return {
+      attackMode: seed.attackMode || DEFAULT_STATE.attackMode,
+      editing: seed.editing || DEFAULT_STATE.editing,
+      attacker: safeTypes(seed.attacker || DEFAULT_STATE.attacker).slice(0, seed.attackMode === 2 ? 2 : 1),
+      defender: safeTypes(seed.defender || DEFAULT_STATE.defender),
+    };
+  }
+
+  function typeLabel(type) {
+    return window.getTypeName ? window.getTypeName(type) : (TYPE_ES[type] || TYPE_EN[type] || type);
+  }
+
+  function typeIcon(type) {
+    return `https://play.pokemonshowdown.com/sprites/types/${TYPE_EN[type]}.png`;
+  }
+
+  function typeEffect(attackType, defenseTypes) {
+    return defenseTypes.reduce((total, defenseType) => {
+      return total * (((CHART[attackType] || {})[defenseType]) ?? 1);
+    }, 1);
+  }
+
+  function attackEffect(attackTypes, defenseTypes) {
+    return attackTypes.reduce((total, attackType) => total * typeEffect(attackType, defenseTypes), 1);
+  }
+
+  function selectedList(state) {
+    return state.editing === 'attack' ? state.attacker : state.defender;
+  }
+
+  function maxSelectable(state) {
+    return state.editing === 'attack' ? state.attackMode : 2;
+  }
+
+  function typeChip(type) {
+    return `
+      <span class="typecalc-chip" style="--type:${TYPE_COLORS[type]}">
+        <img class="typecalc-icon" src="${typeIcon(type)}" alt="${typeLabel(type)}" />
+        <span>${typeLabel(type)}</span>
+      </span>
+    `;
+  }
+
+  function typeButton(type, active) {
+    return `
+      <button class="typecalc-pick ${active ? 'active' : ''}" data-typecalc-pick="${type}" style="--type:${TYPE_COLORS[type]}">
+        <img class="typecalc-icon" src="${typeIcon(type)}" alt="${typeLabel(type)}" />
+        <span>${typeLabel(type)}</span>
+      </button>
+    `;
+  }
+
+  function resultGroup(title, types) {
+    return `
+      <div class="typecalc-group">
+        <div class="typecalc-group-title">${title}</div>
+        <div class="typecalc-group-grid">
+          ${types.length
+            ? types.map((type) => `
+              <span class="typecalc-badge" style="--type:${TYPE_COLORS[type]}">
+                <img class="typecalc-icon" src="${typeIcon(type)}" alt="${typeLabel(type)}" />
+                <span>${typeLabel(type)}</span>
+              </span>
+            `).join('')
+            : '<span class="typecalc-empty">Ninguno</span>'}
+        </div>
       </div>
-      <div class="typecalc-side-group">
-        <div class="typecalc-side-title">Defensa</div>
-        <button class="typecalc-side-btn ${STATE.defenseMode===1?'active':''}" data-mode-key="defenseMode" data-list-key="defender" data-mode="1">Solo</button>
-        <button class="typecalc-side-btn ${STATE.defenseMode===2?'active':''}" data-mode-key="defenseMode" data-list-key="defender" data-mode="2">Equipo</button>
+    `;
+  }
+
+  function bucketByMultiplier(multiplierList, currentTypes, attackView) {
+    return TYPES.filter((type) => {
+      const value = attackView ? attackEffect(currentTypes, [type]) : typeEffect(type, currentTypes);
+      return multiplierList.includes(value);
+    });
+  }
+
+  function resultsMarkup(state) {
+    const currentTypes = selectedList(state);
+    const attackView = state.editing === 'attack';
+    const labels = attackView
+      ? [
+        ['Inflige 4x a', [4, 8]],
+        ['Inflige 2x a', [2]],
+        ['Inflige 1x a', [1]],
+        ['Inflige 0,5x a', [0.5]],
+        ['Inflige 0,25x a', [0.25]],
+        ['Inflige 0x a', [0]],
+      ]
+      : [
+        ['Sufre 4x por', [4, 8]],
+        ['Sufre 2x por', [2]],
+        ['Sufre 1x por', [1]],
+        ['Sufre 0,5x por', [0.5]],
+        ['Sufre 0,25x por', [0.25]],
+        ['Sufre 0x por', [0]],
+      ];
+
+    return labels
+      .map(([title, multiplierList]) => resultGroup(title, bucketByMultiplier(multiplierList, currentTypes, attackView)))
+      .join('');
+  }
+
+  function buildSidebar(state, compact) {
+    if (compact) {
+      return `
+        <aside class="typecalc-sidebar">
+          <div class="typecalc-side-group">
+            <div class="typecalc-side-title">Defensa</div>
+            <button class="typecalc-side-btn active" type="button">Solo</button>
+          </div>
+          <div class="typecalc-side-divider"></div>
+          <div class="typecalc-side-group">
+            <div class="typecalc-side-title">Editar</div>
+            <button class="typecalc-side-btn active" type="button">Tipos</button>
+          </div>
+        </aside>
+      `;
+    }
+
+    return `
+      <aside class="typecalc-sidebar">
+        <div class="typecalc-side-group">
+          <div class="typecalc-side-title">Ataque</div>
+          <button class="typecalc-side-btn ${state.attackMode === 1 ? 'active' : ''}" data-typecalc-attack-mode="1" type="button">Single</button>
+          <button class="typecalc-side-btn ${state.attackMode === 2 ? 'active' : ''}" data-typecalc-attack-mode="2" type="button">Dual</button>
+        </div>
+        <div class="typecalc-side-divider"></div>
+        <div class="typecalc-side-group">
+          <div class="typecalc-side-title">Defensa</div>
+          <button class="typecalc-side-btn ${state.editing === 'defense' ? 'active' : ''}" data-typecalc-edit="defense" type="button">Solo</button>
+          <button class="typecalc-side-btn ${state.editing === 'attack' ? 'active' : ''}" data-typecalc-edit="attack" type="button">Ataque</button>
+        </div>
+      </aside>
+    `;
+  }
+
+  function renderMarkup(state, options = {}) {
+    const compact = Boolean(options.compact);
+    const currentTypes = selectedList(state);
+    const showCopy = !compact;
+
+    return `
+      <div class="typecalc-app ${compact ? 'typecalc-app-compact' : ''}">
+        ${buildSidebar(state, compact)}
+        <section class="typecalc-picker">
+          <div class="typecalc-panel-title">Elige los tipos</div>
+          <div class="typecalc-picked-row">
+            ${currentTypes.map(typeChip).join('')}
+          </div>
+          <div class="typecalc-pick-grid">
+            ${TYPES.map((type) => typeButton(type, currentTypes.includes(type))).join('')}
+          </div>
+          <div class="typecalc-actions">
+            ${showCopy ? '<button class="typecalc-action-btn" data-typecalc-copy type="button">Copiar link</button>' : ''}
+            <button class="typecalc-action-btn" data-typecalc-clear type="button">Limpiar</button>
+          </div>
+        </section>
+        <section class="typecalc-results-pane">
+          ${resultsMarkup(state)}
+        </section>
       </div>
-      <div class="typecalc-side-group">
-        <div class="typecalc-side-title">Editar</div>
-        <button class="typecalc-side-btn ${STATE.editing==='attack'?'active':''}" data-edit="attack">Tipos de ataque</button>
-        <button class="typecalc-side-btn ${STATE.editing==='defense'?'active':''}" data-edit="defense">Tipos de defensa</button>
-      </div>
-    </aside>
-    <section class="typecalc-picker">
-      <div class="typecalc-panel-title">Elige los tipos</div>
-      <div class="typecalc-selected-row">
-        <div class="typecalc-selected-box"><div class="typecalc-selected-label">Ataque</div><div class="typecalc-selected-list">${STATE.attacker.map(chip).join('')}</div></div>
-        <div class="typecalc-selected-box"><div class="typecalc-selected-label">Defensa</div><div class="typecalc-selected-list">${STATE.defender.map(chip).join('')}</div></div>
-        <div class="typecalc-direct-box"><div class="typecalc-selected-label">Matchup</div><div class="typecalc-direct-value">${multLabel(direct)}</div></div>
-      </div>
-      <div class="typecalc-editing-tag">${STATE.editing==='attack'?'Editando tipos de ataque':'Editando tipos de defensa'}</div>
-      <div class="typecalc-pick-grid">${TYPES.map(typeButton).join('')}</div>
-    </section>
-    <section class="typecalc-results-pane">${attackResults}${defenseResults}</section>
-  </div>`;
-  el.querySelectorAll('[data-type]').forEach(btn=>btn.addEventListener('click',()=>pick(btn.dataset.type)));
-  el.querySelectorAll('[data-mode-key]').forEach(btn=>btn.addEventListener('click',()=>setMode(btn.dataset.modeKey,btn.dataset.listKey,Number(btn.dataset.mode)||1)));
-  el.querySelectorAll('[data-edit]').forEach(btn=>btn.addEventListener('click',()=>{STATE.editing=btn.dataset.edit;render();}));
-}
-function buildTypeCalculatorSection(){try{render();}catch(err){console.error('type calc render error',err);const el=document.getElementById('type-calc-section');if(el)el.innerHTML='<div class="battle-end">No se pudo cargar la calculadora de tipos.</div>';}}
-document.addEventListener('DOMContentLoaded',()=>setTimeout(buildTypeCalculatorSection,60));
-document.addEventListener('langchange',()=>setTimeout(buildTypeCalculatorSection,0));
-window.buildTypeCalculatorSection=buildTypeCalculatorSection;
+    `;
+  }
+
+  function applyToggle(state, type) {
+    const listKey = state.editing === 'attack' ? 'attacker' : 'defender';
+    const list = [...state[listKey]];
+    const index = list.indexOf(type);
+
+    if (index >= 0) {
+      if (list.length > 1) list.splice(index, 1);
+    } else if (maxSelectable(state) === 1) {
+      list.splice(0, list.length, type);
+    } else if (list.length < maxSelectable(state)) {
+      list.push(type);
+    } else {
+      list.shift();
+      list.push(type);
+    }
+
+    state[listKey] = list;
+  }
+
+  function serializeState(state) {
+    const params = new URLSearchParams();
+    params.set('edit', state.editing);
+    params.set('am', String(state.attackMode));
+    params.set('atk', state.attacker.join(','));
+    params.set('def', state.defender.join(','));
+    return params.toString();
+  }
+
+  function readStateFromHash() {
+    const hash = (location.hash || '').replace(/^#/, '');
+    const match = hash.match(/(?:^|&)typecalc=([^&]+)/);
+    if (!match) return null;
+    const params = new URLSearchParams(decodeURIComponent(match[1]));
+    return cloneState({
+      editing: params.get('edit') === 'attack' ? 'attack' : 'defense',
+      attackMode: Number(params.get('am')) === 2 ? 2 : 1,
+      attacker: (params.get('atk') || '').split(',').filter(Boolean),
+      defender: (params.get('def') || '').split(',').filter(Boolean),
+    });
+  }
+
+  function writeStateToHash(state) {
+    const current = (location.hash || '').replace(/^#/, '').split('&').filter(Boolean).filter((part) => !part.startsWith('typecalc='));
+    current.push(`typecalc=${encodeURIComponent(serializeState(state))}`);
+    history.replaceState(null, '', `${location.pathname}${location.search}#${current.join('&')}`);
+  }
+
+  function mount(container, seedState = {}, options = {}) {
+    if (!container) return null;
+    const state = cloneState(options.persistToHash ? (readStateFromHash() || seedState) : seedState);
+    const compact = Boolean(options.compact);
+
+    function rerender() {
+      container.innerHTML = renderMarkup(state, options);
+
+      container.querySelectorAll('[data-typecalc-pick]').forEach((button) => {
+        button.addEventListener('click', () => {
+          applyToggle(state, button.dataset.typecalcPick);
+          rerender();
+        });
+      });
+
+      container.querySelectorAll('[data-typecalc-attack-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.attackMode = Number(button.dataset.typecalcAttackMode) || 1;
+          if (state.attackMode === 1 && state.attacker.length > 1) {
+            state.attacker = [state.attacker[0]];
+          }
+          rerender();
+        });
+      });
+
+      container.querySelectorAll('[data-typecalc-edit]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.editing = button.dataset.typecalcEdit || 'defense';
+          rerender();
+        });
+      });
+
+      container.querySelector('[data-typecalc-clear]')?.addEventListener('click', () => {
+        if (state.editing === 'attack') {
+          state.attacker = ['flying'];
+        } else {
+          state.defender = ['poison', 'grass'];
+        }
+        rerender();
+      });
+
+      container.querySelector('[data-typecalc-copy]')?.addEventListener('click', async () => {
+        writeStateToHash(state);
+        try {
+          await navigator.clipboard.writeText(location.href);
+          const button = container.querySelector('[data-typecalc-copy]');
+          if (button) {
+            const original = button.textContent;
+            button.textContent = 'Link copiado';
+            setTimeout(() => { button.textContent = original; }, 1200);
+          }
+        } catch (error) {
+          console.error('copy typecalc link error', error);
+        }
+      });
+
+      if (options.persistToHash) {
+        writeStateToHash(state);
+      }
+
+      if (typeof options.onChange === 'function') {
+        options.onChange(cloneState(state), compact);
+      }
+    }
+
+    rerender();
+    return state;
+  }
+
+  function buildTypeCalculatorSection() {
+    const section = document.getElementById('type-calc-section');
+    if (!section) return;
+    try {
+      mount(section, DEFAULT_STATE, { compact: false, persistToHash: true });
+    } catch (error) {
+      console.error('type calculator render error', error);
+      section.innerHTML = '<div class="battle-end">No se pudo cargar la calculadora de tipos.</div>';
+    }
+  }
+
+  window.PHTypeCalc = {
+    TYPES,
+    TYPE_COLORS,
+    TYPE_EN,
+    TYPE_ES,
+    cloneState,
+    typeLabel,
+    typeIcon,
+    mount,
+    buildTypeCalculatorSection,
+  };
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(buildTypeCalculatorSection, 60));
+  document.addEventListener('langchange', () => setTimeout(buildTypeCalculatorSection, 0));
+  window.buildTypeCalculatorSection = buildTypeCalculatorSection;
 })();
