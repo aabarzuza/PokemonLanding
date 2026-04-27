@@ -1,57 +1,61 @@
 // app.js
-// Este archivo controla la navegación principal de la página.
+// Este archivo controla la navegacion principal de la pagina.
+// "navegacion" = moverse entre apartados sin recargar toda la web.
 
-// Guardamos una referencia al sidebar.
+// getElementById = busca UN elemento por su id.
+// sidebar = menu lateral de la izquierda.
 const sidebar = document.getElementById('sidebar');
-// Guardamos una referencia al fondo oscuro que aparece en móvil.
+// overlay = capa semitransparente que aparece en movil al abrir el menu.
 const overlay = document.getElementById('overlay');
-// Botón para abrir el sidebar.
+// btnOpen = boton que abre el menu lateral.
 const btnOpen = document.getElementById('sidebar-open');
-// Botón para cerrar el sidebar.
+// btnClose = boton que cierra el menu lateral.
 const btnClose = document.getElementById('sidebar-close');
-// Todos los enlaces del menú lateral.
+// querySelectorAll = busca VARIOS elementos que cumplan una condicion CSS.
+// navItems = botones del menu lateral.
 const navItems = document.querySelectorAll('.nav-item');
-// Todas las secciones principales de la página.
+// sections = bloques grandes de contenido de la pagina.
 const sections = document.querySelectorAll('.section');
-// Título de la barra superior.
+// pageTitle = titulo superior que cambia segun la seccion.
 const pageTitle = document.getElementById('page-title');
-// Tarjetas de la portada que también navegan a secciones.
+// cards = tarjetas de inicio que llevan a otras secciones.
 const cards = document.querySelectorAll('.card[data-goto]');
 
-// Objeto para traducir el id de una sección a un título legible.
-const sectionTitles = {
-  inicio: 'Inicio',
-  combate: 'Combate',
-  calculadora: 'Calculadora de daño',
-  tipos: 'Calculadora de tipos',
-  constructor: 'Constructor de equipos',
-  equipos: 'Mis equipos',
-  glosario: 'Glosario y guías',
-};
-
-// Variable para saber si estamos en pantalla pequeña.
+// isMobile = true o false segun el ancho actual de la ventana.
+// innerWidth = ancho visible del navegador en pixeles.
 let isMobile = window.innerWidth <= 700;
 
-// Deja el sidebar abierto en escritorio y cerrado en móvil.
+// Esta funcion traduce el id de una seccion a un titulo legible.
+function sectionTitle(sectionId) {
+  // window.t = funcion global de traduccion creada en lang.js.
+  // `app.${sectionId}` = plantilla de texto. Ejemplo: app.combate.
+  return window.t ? window.t(`app.${sectionId}`) : sectionId;
+}
+
+// Decide como debe arrancar el sidebar segun si estamos en movil o no.
 function initSidebar() {
   if (isMobile) {
+    // classList.add = anade una clase CSS al <body>.
     document.body.classList.add('sidebar-closed');
   } else {
+    // classList.remove = quita una clase CSS del <body>.
     document.body.classList.remove('sidebar-closed');
   }
 }
 
-// Abre el sidebar.
+// Abre el menu lateral.
 function openSidebar() {
   if (isMobile) {
+    // En movil abrimos un modo especial para que el menu tape la pantalla.
     document.body.classList.add('sidebar-open-mobile');
     overlay.classList.add('active');
   } else {
+    // En escritorio simplemente quitamos el estado de "cerrado".
     document.body.classList.remove('sidebar-closed');
   }
 }
 
-// Cierra el sidebar.
+// Cierra el menu lateral.
 function closeSidebar() {
   if (isMobile) {
     document.body.classList.remove('sidebar-open-mobile');
@@ -61,128 +65,161 @@ function closeSidebar() {
   }
 }
 
-// Cambia a la sección indicada.
+// Esta es la funcion mas importante del archivo.
+// Cambia la seccion visible de la SPA.
+// SPA = Single Page Application = web de una sola pagina que cambia por dentro.
 function navigateTo(sectionId) {
-  // Quitamos la clase active de todos los enlaces del menú.
+  // Recorremos todos los botones del menu y les quitamos la clase activa.
   navItems.forEach((item) => item.classList.remove('active'));
-
-  // Quitamos la clase active de todas las secciones.
+  // Hacemos lo mismo con todas las secciones de contenido.
   sections.forEach((section) => section.classList.remove('active'));
 
-  // Buscamos el botón del menú que corresponde a la sección.
+  // Buscamos el boton del menu que corresponde al apartado pedido.
+  // data-section = atributo HTML personalizado.
   const activeNav = document.querySelector(`.nav-item[data-section="${sectionId}"]`);
-
-  // Si existe, lo marcamos como activo.
   if (activeNav) {
     activeNav.classList.add('active');
   }
 
-  // Buscamos la sección visual que toca mostrar.
+  // Buscamos la seccion real de contenido por su id.
+  // Ejemplo: si sectionId es "combate", buscamos "section-combate".
   const activeSection = document.getElementById(`section-${sectionId}`);
-
-  // Si existe, la mostramos.
   if (activeSection) {
     activeSection.classList.add('active');
   }
 
-  // Actualizamos el título superior.
-  pageTitle.textContent = sectionTitles[sectionId] || sectionId;
+  // Cambiamos el titulo de la barra superior.
+  pageTitle.textContent = sectionTitle(sectionId);
 
-  // Si estamos en móvil, cerramos el sidebar después de navegar.
+  // En movil cerramos el menu al navegar para dejar espacio al contenido.
   if (isMobile) {
     closeSidebar();
   }
 
-  // Si entramos en la calculadora de daño, la construimos.
+  // setTimeout = ejecuta algo un poco despues.
+  // Aqui se usa para esperar a que la seccion ya este visible antes de dibujarla.
   if (sectionId === 'calculadora' && typeof buildCalcSection === 'function') {
     setTimeout(buildCalcSection, 50);
   }
 
-  // Si entramos en la calculadora de tipos, la construimos.
   if (sectionId === 'tipos' && typeof buildTypeCalculatorSection === 'function') {
     setTimeout(buildTypeCalculatorSection, 50);
   }
 
-  // Si entramos en equipos guardados, los cargamos.
   if (sectionId === 'equipos' && typeof loadSavedTeams === 'function') {
     setTimeout(loadSavedTeams, 50);
   }
 
-  // Si entramos en el constructor, pintamos la grid del equipo.
   if (sectionId === 'constructor' && typeof renderGrid === 'function') {
     setTimeout(renderGrid, 50);
   }
+
+  if (sectionId === 'glosario' && window.PH_PENDING_GLOSSARY_TAB && typeof window.activateGlossaryTab === 'function') {
+    setTimeout(() => {
+      window.activateGlossaryTab(window.PH_PENDING_GLOSSARY_TAB);
+      window.PH_PENDING_GLOSSARY_TAB = '';
+    }, 50);
+  }
 }
 
-// Al pulsar el botón de abrir, abrimos el sidebar.
-btnOpen.addEventListener('click', openSidebar);
-// Al pulsar el botón de cerrar, cerramos el sidebar.
-btnClose.addEventListener('click', closeSidebar);
-// Al pulsar el fondo oscuro, cerramos el sidebar.
-overlay.addEventListener('click', closeSidebar);
+// addEventListener = escuchar un evento del usuario, por ejemplo un click.
+btnOpen?.addEventListener('click', openSidebar);
+btnClose?.addEventListener('click', closeSidebar);
+overlay?.addEventListener('click', closeSidebar);
 
-// Cada elemento del menú lateral cambia de sección.
+// A cada boton del menu le damos su comportamiento.
 navItems.forEach((item) => {
   item.addEventListener('click', (event) => {
+    // preventDefault = evita el comportamiento HTML por defecto.
     event.preventDefault();
     navigateTo(item.dataset.section);
   });
 });
 
-// Cada tarjeta de la portada también cambia de sección.
+// Las tarjetas del inicio tambien sirven para navegar.
 cards.forEach((card) => {
   card.addEventListener('click', () => {
     navigateTo(card.dataset.goto);
   });
 });
 
-// Algunos textos internos tienen enlaces rápidos entre secciones.
+// Este listener captura enlaces internos creados dinamicamente.
 document.addEventListener('click', (event) => {
   if (event.target.classList.contains('link-inline') && event.target.dataset.goto) {
     navigateTo(event.target.dataset.goto);
   }
 });
 
-// Los enlaces del índice de Inicio necesitan compensar el header fijo.
+// Estos botones sirven para abrir una seccion concreta desde la wiki rapida.
 document.addEventListener('click', (event) => {
+  const quickBtn = event.target.closest('[data-open-section]');
+  if (!quickBtn) return;
+
+  const nextSection = quickBtn.dataset.openSection;
+  const nextTab = quickBtn.dataset.openTab || '';
+
+  if (nextTab) {
+    // Guardamos temporalmente que pestana del glosario queremos abrir.
+    window.PH_PENDING_GLOSSARY_TAB = nextTab;
+  }
+
+  navigateTo(nextSection);
+});
+
+// Este bloque hace scroll suave en el indice de la guia de inicio.
+document.addEventListener('click', (event) => {
+  // closest = busca el elemento mas cercano que cumpla la clase indicada.
   const guideLink = event.target.closest('.guide-index-link');
   if (!guideLink) return;
 
+  // href = destino del enlace. Ejemplo: #section-1
   const href = guideLink.getAttribute('href') || '';
   if (!href.startsWith('#')) return;
 
+  // querySelector busca el bloque destino dentro de la misma pagina.
   const target = document.querySelector(href);
   if (!target) return;
 
   event.preventDefault();
 
+  // offsetHeight = altura real del header.
+  // Se resta para que el titulo no quede escondido bajo la barra fija.
   const header = document.querySelector('.topbar');
   const offset = (header?.offsetHeight || 74) + 18;
+  // getBoundingClientRect().top = distancia del elemento respecto a la ventana.
+  // window.scrollY = cuanto hemos bajado ya en la pagina.
   const top = target.getBoundingClientRect().top + window.scrollY - offset;
 
+  // scrollTo mueve la pantalla a la posicion calculada.
   window.scrollTo({ top, behavior: 'smooth' });
 });
 
-// Si cambia el tamaño de la pantalla, reajustamos el sidebar.
+// Si el usuario cambia el tamano de la ventana, recalculamos si es movil o no.
 window.addEventListener('resize', () => {
-  // Guardamos cómo era antes.
   const wasMobile = isMobile;
-
-  // Recalculamos si ahora es móvil o no.
   isMobile = window.innerWidth <= 700;
 
-  // Si antes era móvil y ahora no, quitamos clases móviles sobrantes.
+  // Si pasamos de movil a escritorio, limpiamos clases de movil.
   if (wasMobile && !isMobile) {
     document.body.classList.remove('sidebar-closed');
     document.body.classList.remove('sidebar-open-mobile');
     overlay.classList.remove('active');
   }
 
-  // Si antes no era móvil y ahora sí, cerramos el sidebar.
+  // Si pasamos de escritorio a movil, cerramos el menu por defecto.
   if (!wasMobile && isMobile) {
     document.body.classList.add('sidebar-closed');
   }
 });
 
-// Llamamos a la función inicial para dejar el sidebar bien desde el principio.
+// langchange = evento personalizado que lanzamos cuando cambia el idioma.
+document.addEventListener('langchange', () => {
+  const activeSection = document.querySelector('.nav-item.active')?.dataset.section || 'inicio';
+  pageTitle.textContent = sectionTitle(activeSection);
+});
+
+// Inicializamos el estado del sidebar al cargar la pagina.
 initSidebar();
+
+// Dejamos navigateTo disponible en window para poder usarlo desde otros archivos.
+window.navigateTo = navigateTo;

@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PokéHub Competitivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Source+Sans+3:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/sidebar.css" />
   <link rel="stylesheet" href="css/sections.css" />
@@ -26,9 +29,9 @@
         <span class="nav-icon">🏠</span>
         <span class="nav-label">Inicio</span>
       </a>
-      <a href="#" class="nav-item" data-section="combate">
+      <a href="#" class="nav-item" data-section="consulta">
         <span class="nav-icon">🎮</span>
-        <span class="nav-label">Combate</span>
+        <span class="nav-label">Wiki rápida</span>
       </a>
       <a href="#" class="nav-item" data-section="calculadora">
         <span class="nav-icon">🧮</span>
@@ -68,7 +71,10 @@
     <header class="topbar">
       <button id="sidebar-open" class="icon-btn" title="Abrir menú">☰</button>
       <h1 id="page-title" class="page-title">Inicio</h1>
-      <button id="lang-toggle-btn" onclick="cycleLang()" class="icon-btn lang-btn" title="Cambiar idioma" style="margin-left:auto;font-size:12px;font-weight:700;min-width:60px">🌍 ES</button>
+      <div class="lang-switch" aria-label="Language selector">
+        <button id="lang-btn-es" class="lang-switch-btn" type="button">ES</button>
+        <button id="lang-btn-en" class="lang-switch-btn" type="button">EN</button>
+      </div>
     </header>
 
     <!-- Contenido -->
@@ -320,134 +326,81 @@
 
 
       <!-- SECCIÓN: COMBATE -->
-      <section id="section-combate" class="section">
-        <div class="section-inner" style="max-width:1100px;">
-
-          <!-- Pantalla de inicio -->
-          <div id="battle-intro">
-            <div class="tb-topbar">
-              <h2 class="tb-title">🎮 Panel de combate</h2>
-              <span id="battle-status-msg" class="battle-status-inline">No conectado</span>
+      <section id="section-consulta" class="section">
+        <div class="section-inner consult-shell">
+          <div class="consult-hero">
+            <div class="consult-hero-copy">
+              <div class="hero-badge">Wiki companion</div>
+              <h2 class="consult-title">Centro de consulta competitiva</h2>
+              <p class="consult-text">Usa PokéHub como una wiki rápida mientras juegas en Pokémon Showdown o Pokémon Champions. Todo está orientado a consultar datos, matchups, daño, builds y conceptos sin perder el hilo de la partida real.</p>
             </div>
-
-            <div class="battle-setup-grid">
-              <div class="battle-setup-card">
-                <label class="editor-label">Tu nombre de entrenador</label>
-                <input type="text" id="battle-trainer-name" class="editor-input" placeholder="Ash, Misty..." value="Entrenador" />
-                <label class="editor-label" style="margin-top:10px">Formato</label>
-                <select id="battle-format" class="editor-select" style="width:100%">
-                  <option value="gen9ou">Gen 9 OU</option>
-                  <option value="gen9doublesou">Gen 9 Doubles OU</option>
-                  <option value="gen9randombattle">Gen 9 Random Battle</option>
-                  <option value="gen8ou">Gen 8 OU</option>
-                  <option value="gen8doublesou">Gen 8 Doubles OU</option>
-                  <option value="gen7ou">Gen 7 OU</option>
-                </select>
-                <label class="editor-label" style="margin-top:10px">Equipo</label>
-                <select id="battle-team-source" class="editor-select" style="width:100%">
-                  <option value="builder">Usar constructor actual</option>
-                  <option value="saved">Elegir equipo guardado</option>
-                  <option value="random">Equipo aleatorio</option>
-                </select>
-                <select id="battle-saved-team" class="editor-select" style="width:100%;margin-top:8px;display:none">
-                  <option value="">Cargando equipos...</option>
-                </select>
-              </div>
-
-              <div class="battle-setup-card">
-                <div class="battle-setup-title">Buscar batalla</div>
-                <p class="guide-p">Entra en cola y cuando haya otro jugador disponible empieza la batalla automáticamente.</p>
-                <button id="battle-find-btn" class="btn-primary" style="width:100%">⚔️ Buscar rival</button>
-                <button id="battle-practice-btn" class="btn-secondary" style="width:100%;margin-top:8px">Probar contra bot</button>
-              </div>
-
-              <div class="battle-setup-card">
-                <div class="battle-setup-title">Sala privada</div>
-                <p class="guide-p">Crea una sala y comparte el ID con un amigo para jugar.</p>
-                <button id="battle-create-btn" class="btn-secondary" style="width:100%;margin-bottom:8px">➕ Crear sala</button>
-                <div id="battle-room-id" class="battle-room-id" style="display:none"></div>
-                <div style="display:flex;gap:6px;margin-top:8px">
-                  <input type="text" id="battle-join-id" class="editor-input" placeholder="ID de sala..." />
-                  <button id="battle-join-btn" class="btn-secondary">Unirse</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="guide-tip" style="margin-top:16px">
-              💡 Puedes combatir con el equipo del constructor, con uno guardado o con uno aleatorio. Los formatos dobles también están disponibles.
+            <div class="consult-highlight">
+              <div class="consult-highlight-title">Flujo recomendado</div>
+              <div class="consult-highlight-step">1. Busca el Pokémon, movimiento u objeto que tengas delante.</div>
+              <div class="consult-highlight-step">2. Comprueba el daño o la cobertura de tipos.</div>
+              <div class="consult-highlight-step">3. Ajusta tu equipo o tus notas en el builder.</div>
+              <div class="consult-highlight-step">4. Vuelve a Showdown con la información clara.</div>
             </div>
           </div>
 
-          <!-- Arena de batalla -->
-          <div id="battle-arena" style="display:none">
-            <div class="battle-arena-layout">
+          <div class="consult-grid">
+            <article class="consult-card">
+              <div class="consult-card-icon">🔴</div>
+              <h3 class="consult-card-title">Pokémon</h3>
+              <p class="consult-card-text">Consulta tipos, stats, tiers, descripciones y learnsets para decidir cambios, coberturas y checks.</p>
+              <button class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="pokemon">Abrir Pokémon</button>
+            </article>
 
-              <!-- Campo de batalla -->
-              <div class="battle-field">
-                <div class="battle-topbar">
-                  <span id="battle-turn" class="battle-turn-label">Turno 1</span>
-                  <button id="battle-forfeit-btn" class="btn-secondary" style="font-size:11px">Rendirse</button>
-                </div>
-                <div class="battle-platform battle-platform-opp"></div>
-                <div class="battle-platform battle-platform-own"></div>
+            <article class="consult-card">
+              <div class="consult-card-icon">💥</div>
+              <h3 class="consult-card-title">Movimientos</h3>
+              <p class="consult-card-text">Busca en español o inglés y revisa potencia, precisión, categoría y usuarios comunes.</p>
+              <button class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="movimientos">Abrir movimientos</button>
+            </article>
 
-                <!-- P2 (rival) -->
-                <div class="battle-side battle-side-opp">
-                  <div class="battle-poke-info">
-                    <div id="battle-p2-name" class="battle-poke-name">Rival</div>
-                    <div id="battle-p2-poke-name" class="battle-active-name">—</div>
-                    <div class="battle-hp-wrap">
-                      <div class="battle-hp-bar-bg">
-                        <div id="battle-p2-hp-bar" class="battle-hp-bar" style="width:100%;background:#2dc76d"></div>
-                      </div>
-                      <span id="battle-p2-hp-text" class="battle-hp-text">—</span>
-                    </div>
-                  </div>
-                  <div id="battle-p2-sprite" class="battle-sprite-wrap battle-sprite-opp">
-                    <img id="battle-p2-img" src="" alt="" class="battle-poke-sprite" onerror="this.style.display='none'" />
-                  </div>
-                  <div id="battle-p2-active-strip" class="battle-active-strip"></div>
-                </div>
-
-                <!-- P1 (tú) -->
-                <div class="battle-side battle-side-own">
-                  <div id="battle-p1-sprite" class="battle-sprite-wrap battle-sprite-own">
-                    <img id="battle-p1-img" src="" alt="" class="battle-poke-sprite" onerror="this.style.display='none'" />
-                  </div>
-                  <div class="battle-poke-info battle-poke-info-own">
-                    <div id="battle-p1-name" class="battle-poke-name">Tú</div>
-                    <div id="battle-p1-poke-name" class="battle-active-name">—</div>
-                    <div class="battle-hp-wrap">
-                      <div class="battle-hp-bar-bg">
-                        <div id="battle-p1-hp-bar" class="battle-hp-bar" style="width:100%;background:#2dc76d"></div>
-                      </div>
-                      <span id="battle-p1-hp-text" class="battle-hp-text">—</span>
-                    </div>
-                  </div>
-                  <div id="battle-p1-active-strip" class="battle-active-strip battle-active-strip-own"></div>
-                </div>
-                <div id="battle-announcer" class="battle-announcer">La batalla va a comenzar.</div>
+            <article class="consult-card">
+              <div class="consult-card-icon">✨</div>
+              <h3 class="consult-card-title">Habilidades y objetos</h3>
+              <p class="consult-card-text">Comprueba efectos, sinergias y detalles clave para entender sets y win conditions rivales.</p>
+              <div class="consult-card-actions">
+                <button class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="habilidades">Habilidades</button>
+                <button class="btn-secondary consult-card-btn" data-open-section="glosario" data-open-tab="objetos">Objetos</button>
               </div>
+            </article>
 
-              <!-- Panel derecho -->
-              <div class="battle-right-panel">
-                <div class="battle-side-tools">
-                  <div class="battle-side-tools-bar">
-                    <button id="battle-tool-glossary-btn" class="btn-secondary">Glosario</button>
-                    <button id="battle-tool-types-btn" class="btn-secondary">Tipos</button>
-                  </div>
-                  <div id="battle-side-tool-panel" class="battle-side-tool-panel" style="display:none"></div>
-                </div>
-                <!-- Log -->
-                <div id="battle-log" class="battle-log"></div>
-                <!-- Movimientos -->
-                <div id="battle-move-area" class="battle-move-area">
-                  <div class="battle-waiting">Esperando inicio de batalla...</div>
-                </div>
+            <article class="consult-card">
+              <div class="consult-card-icon">🧮</div>
+              <h3 class="consult-card-title">Calculadora de daño</h3>
+              <p class="consult-card-text">Estima daño real entre dos Pokémon ajustando EVs, habilidades, objetos y condiciones del campo.</p>
+              <button class="btn-primary consult-card-btn" data-open-section="calculadora">Abrir calculadora</button>
+            </article>
+
+            <article class="consult-card">
+              <div class="consult-card-icon">🗺️</div>
+              <h3 class="consult-card-title">Calculadora de tipos</h3>
+              <p class="consult-card-text">Analiza debilidades, resistencias, inmunidades y coberturas ofensivas con uno o dos tipos.</p>
+              <button class="btn-primary consult-card-btn" data-open-section="tipos">Abrir tipos</button>
+            </article>
+
+            <article class="consult-card">
+              <div class="consult-card-icon">🛡️</div>
+              <h3 class="consult-card-title">Builder y equipos</h3>
+              <p class="consult-card-text">Crea equipos, expórtalos a Showdown y guarda versiones para seguir iterando fuera de la partida.</p>
+              <div class="consult-card-actions">
+                <button class="btn-primary consult-card-btn" data-open-section="constructor">Abrir builder</button>
+                <button class="btn-secondary consult-card-btn" data-open-section="equipos">Ver guardados</button>
               </div>
-            </div>
+            </article>
           </div>
 
+          <div class="consult-panel">
+            <h3 class="consult-panel-title">Por qué este enfoque es mejor para el proyecto</h3>
+            <div class="consult-panel-list">
+              <div class="consult-panel-item">La web tiene un propósito claro y fácil de defender: herramienta de consulta competitiva con backend real.</div>
+              <div class="consult-panel-item">Las funciones principales se pueden probar rápido: búsquedas, calculadoras, builder y equipos guardados.</div>
+              <div class="consult-panel-item">Puedes usarla de verdad al lado de Showdown sin depender de un simulador interno a medio hacer.</div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -624,6 +577,8 @@
 
   <script src="data/translations-es.js"></script>
   <script src="js/lang.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/content-i18n.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script src="data/glossary2.js"></script>
@@ -634,7 +589,6 @@
   <script src="js/glossary.js"></script>
   <script src="js/pokedex-search.js"></script>
   <script src="js/teambuilder.js"></script>
-  <script src="js/battle-client.js"></script>
   <script src="js/damage-calc.js"></script>
   <script src="js/type-calculator.js"></script>
   <script src="js/teams-manager.js"></script>

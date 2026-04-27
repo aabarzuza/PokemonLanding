@@ -45,6 +45,7 @@ body.sidebar-closed .sidebar {
 }
 
 .logo-text {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
@@ -62,6 +63,7 @@ body.sidebar-closed .sidebar {
 }
 
 .nav-item {
+  font-family: var(--font-display);
   display: flex;
   align-items: center;
   gap: 12px;

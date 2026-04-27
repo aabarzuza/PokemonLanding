@@ -23,6 +23,7 @@
 }
 
 .section-inner h2 {
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
@@ -46,6 +47,7 @@
 }
 
 .intro-title {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
@@ -106,6 +108,152 @@
 /* =========================================
    SECCIÓN GLOSARIO — Buscador interactivo
    ========================================= */
+
+/* =========================================
+   SECCION CONSULTA - Wiki rapida
+   ========================================= */
+
+.consult-shell {
+  max-width: 1180px;
+}
+
+.consult-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.consult-hero-copy,
+.consult-highlight,
+.consult-card,
+.consult-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.consult-hero-copy {
+  padding: 22px 22px 20px;
+}
+
+.consult-title,
+.consult-card-title,
+.consult-panel-title {
+  font-family: var(--font-display);
+}
+
+.consult-title {
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.consult-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 62ch;
+}
+
+.consult-highlight {
+  padding: 18px;
+  background: linear-gradient(180deg, #f8faff 0%, #eef3ff 100%);
+}
+
+.consult-highlight-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.consult-highlight-step {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.55;
+  padding: 8px 0;
+  border-top: 1px solid rgba(74, 108, 247, 0.12);
+}
+
+.consult-highlight-step:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.consult-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.consult-card {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.consult-card-icon {
+  font-size: 24px;
+}
+
+.consult-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.consult-card-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.consult-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.consult-card-btn {
+  width: 100%;
+}
+
+.consult-card-actions .consult-card-btn {
+  width: auto;
+  flex: 1 1 140px;
+}
+
+.consult-panel {
+  padding: 18px;
+}
+
+.consult-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.consult-panel-list {
+  display: grid;
+  gap: 10px;
+}
+
+.consult-panel-item {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
 
 .glossary-controls { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 
@@ -1474,7 +1622,7 @@
   left: 50%;
   bottom: calc(100% + 10px);
   transform: translateX(-50%) translateY(8px);
-  width: 230px;
+  width: 320px;
   padding: 10px;
   border-radius: 14px;
   background: rgba(17,24,39,0.95);
@@ -1494,6 +1642,10 @@
 .battle-hover-types { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 .battle-hover-ability { font-size: 12px; font-weight: 700; color: #bfdbfe; margin-bottom: 4px; }
 .battle-hover-desc { font-size: 11px; line-height: 1.4; color: #d1d5db; margin-bottom: 8px; }
+.battle-hover-section-title { font-size: 11px; font-weight: 800; color: #93c5fd; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.battle-hover-line { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: #d1d5db; padding: 2px 0; }
+.battle-hover-line strong { color: #f8fafc; white-space: nowrap; }
+.battle-hover-stack { display: grid; gap: 2px; margin-bottom: 4px; }
 .battle-hover-stats { display: grid; gap: 4px; }
 .battle-hover-stat {
   display: grid;
@@ -1715,8 +1867,11 @@
 }
 .battle-log {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-md); padding: 10px; overflow: hidden;
-  font-size: 12px; line-height: 1.45; max-height: 124px;
+  border-radius: var(--radius-md); padding: 10px;
+  overflow-x: hidden; overflow-y: auto;
+  font-size: 12px; line-height: 1.45; height: 124px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 .battle-log-entry { padding: 1px 0; border-bottom: 1px solid var(--border); }
 .battle-log-entry:last-child { border-bottom: none; }
@@ -1817,4 +1972,251 @@
 .battle-choice-tag {
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700;
+}
+
+/* =========================================
+   UI POPUPS - Alertas y dialogos PokéHub
+   ========================================= */
+
+.ph-toast-stack {
+  position: fixed;
+  top: calc(var(--topbar-height) + 14px);
+  right: 16px;
+  z-index: 2200;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ph-toast {
+  min-width: 220px;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(180deg, #293042 0%, #1a2130 100%);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.22);
+  transform: translateY(-8px);
+  opacity: 0;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.ph-toast.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ph-toast.is-success { background: linear-gradient(180deg, #2fa96c 0%, #1f8f58 100%); }
+.ph-toast.is-error { background: linear-gradient(180deg, #d74c4c 0%, #bb3131 100%); }
+
+.ph-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2300;
+  background: rgba(10,15,24,0.45);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.ph-dialog-card {
+  width: min(440px, 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.20);
+}
+
+.ph-dialog-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.ph-dialog-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.ph-dialog-message {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.ph-dialog-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ph-dialog-field {
+  display: grid;
+  gap: 5px;
+}
+
+.ph-dialog-field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ph-dialog-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+}
+
+.ph-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+@media (max-width: 860px) {
+  .consult-hero,
+  .consult-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-index-links {
+    gap: 8px;
+  }
+
+  .battle-side-tools-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .battle-moves-grid,
+  .battle-switch-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .consult-hero-copy,
+  .consult-highlight,
+  .consult-card,
+  .consult-panel {
+    padding-inline: 14px;
+  }
+
+  .consult-title {
+    font-size: 24px;
+  }
+
+  .section-inner {
+    padding-inline: 0;
+  }
+
+  .glossary-controls,
+  .move-filters {
+    flex-direction: column;
+  }
+
+  .glossary-search-wrap,
+  .glossary-select,
+  .move-filters .glossary-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .calc-damage-grid,
+  .calc-damage-numbers,
+  .typecalc-group-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .typecalc-app.typecalc-app-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .typecalc-app.typecalc-app-compact .typecalc-sidebar,
+  .typecalc-app.typecalc-app-compact .typecalc-picker {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .battle-right-panel {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .battle-side-tool-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .consult-card-actions {
+    flex-direction: column;
+  }
+
+  .consult-card-actions .consult-card-btn {
+    width: 100%;
+    flex: none;
+  }
+
+  .tb-layout {
+    gap: 12px;
+  }
+
+  .tb-grid,
+  .editor-stats-grid,
+  .battle-arena-layout,
+  .battle-moves-grid,
+  .battle-switch-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .battle-poke-sprite {
+    max-width: 112px;
+    max-height: 88px;
+  }
+
+  .battle-move-hover-card {
+    width: min(220px, calc(100vw - 32px));
+  }
+
+  .battle-hover-card {
+    width: min(290px, calc(100vw - 24px));
+  }
+
+  .typecalc-pick-grid,
+  .typecalc-group-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ph-toast-stack {
+    left: 12px;
+    right: 12px;
+    top: calc(var(--topbar-height) + 10px);
+  }
+
+  .ph-toast {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .ph-dialog-backdrop {
+    padding: 12px;
+  }
+
+  .ph-dialog-actions {
+    flex-direction: column-reverse;
+  }
 }

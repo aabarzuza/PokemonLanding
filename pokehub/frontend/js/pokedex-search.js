@@ -104,16 +104,22 @@ function staticSearch(type, query, filters = {}) {
 
 /* ── UI helpers ── */
 function setContent(el, html) { el.innerHTML = html; }
-function showLoading(el) { setContent(el, '<div class="api-loading"><div class="api-spinner"></div><span>Buscando...</span></div>'); }
+function showLoading(el) { setContent(el, `<div class="api-loading"><div class="api-spinner"></div><span>${window.t ? window.t('glossary.searching') : 'Buscando...'}</span></div>`); }
 function showHint(el, msg) { setContent(el, `<div class="api-hint">${msg}</div>`); }
-function showEmpty(el) { setContent(el, '<div class="api-empty">Sin resultados.</div>'); }
+function showEmpty(el) { setContent(el, `<div class="api-empty">${window.t ? window.t('glossary.noResults') : 'Sin resultados.'}</div>`); }
 function showError(el, msg) { setContent(el, `<div class="api-error">❌ ${msg}</div>`); }
+
+function orderedNames(entry) {
+  return window.getOrderedNames
+    ? window.getOrderedNames(entry)
+    : { primary: entry.name_es || entry.name || entry.id, secondary: entry.name || '' };
+}
 
 /* ── Botón volver ── */
 function addBackButton(container, label, onBack) {
   const btn = document.createElement('button');
   btn.className = 'back-btn';
-  btn.textContent = `← Volver${label ? ' a "'+label+'"' : ''}`;
+  btn.textContent = `← ${window.t ? window.t('common.back') : 'Volver'}${label ? ` "${label}"` : ''}`;
   btn.addEventListener('click', onBack);
   container.prepend(btn);
 }
@@ -137,7 +143,7 @@ function renderSuggestions(container, results, onSelect, entryType = 'pokemon') 
   if (!results.length) { showEmpty(container); return; }
   const items = results.map(r => {
     const sprite   = getSpriteHtml(r, entryType);
-    const bilingual = window.getBilingualNames ? window.getBilingualNames(r) : { es: r.name_es || r.name || r.id, en: r.name || r.id };
+    const names = orderedNames(r);
     const tier     = r.tier ? `<span style="font-size:10px;color:${TIER_COLORS[r.tier]||'#888'};margin-left:auto;font-weight:700">${r.tier}</span>` : '';
 
     let typeBadges = '';
@@ -153,9 +159,9 @@ function renderSuggestions(container, results, onSelect, entryType = 'pokemon') 
 
     return `<button class="suggestion-item" data-id="${r.id}">
       ${sprite}
-      <span class="sug-names">
-        <span class="sug-name-es">${bilingual.es}</span>
-        ${bilingual.en && bilingual.en !== bilingual.es ? `<span class="sug-name-en">${bilingual.en}</span>` : ''}
+        <span class="sug-names">
+        <span class="sug-name-es">${names.primary}</span>
+        ${names.secondary && names.secondary !== names.primary ? `<span class="sug-name-en">${names.secondary}</span>` : ''}
       </span>
       ${tier}${typeBadges}
     </button>`;
@@ -170,7 +176,7 @@ function renderSuggestions(container, results, onSelect, entryType = 'pokemon') 
    POKÉMON — usa /api/pokemon
    ========================================== */
 async function handlePokemonSearch(query, container) {
-  if (!query || query.length < 2) { showHint(container, '✏️ Escribe al menos 2 letras. Ej: "pikac", "Drago", "char"'); return; }
+  if (!query || query.length < 2) { showHint(container, `${window.t ? window.t('glossary.searchHint') : 'Escribe al menos 2 letras.'} Ej: "pikac", "Drago", "char"`); return; }
   showLoading(container);
   try {
     const data = await backendSearch('/api/pokemon', { q: query, limit: 12 });
@@ -227,7 +233,7 @@ async function loadPokemonDetail(id, container, prevQuery) {
                onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.num}.png'" alt="${p.name}" />
           <div class="poke-types">${types.map(t=>`<span class="type-badge" style="background:${TYPE_COLORS[t]||'#888'}">${TYPE_ES[t]||t}</span>`).join('')}</div>
           ${p.tier ? `<span style="font-size:12px;font-weight:700;color:${TIER_COLORS[p.tier]||'#888'}">${p.tier}</span>` : ''}
-          <a href="${wikidexUrl}" target="_blank" class="wikidex-btn">Ver en WikiDex →</a>
+          <a href="${wikidexUrl}" target="_blank" class="wikidex-btn">${window.LANG === 'en' ? 'View on WikiDex →' : 'Ver en WikiDex →'}</a>
         </div>
         <div class="poke-card-right">
           <div class="poke-header">
@@ -250,21 +256,21 @@ async function loadPokemonDetail(id, container, prevQuery) {
             </div>
           </div>
           <div style="margin-top:10px;font-size:12px;color:var(--text-muted)">
-            <strong>Habilidades:</strong>
-            ${[p.ability1, p.ability2, p.ability_h ? `${p.ability_h} (oculta)` : null].filter(Boolean).join(' · ')}
+            <strong>${window.LANG === 'en' ? 'Abilities:' : 'Habilidades:'}</strong>
+            ${[p.ability1, p.ability2, p.ability_h ? `${p.ability_h} ${window.LANG === 'en' ? '(hidden)' : '(oculta)'}` : null].filter(Boolean).join(' · ')}
           </div>
           ${learnset.length ? `
           <div style="margin-top:10px">
-            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Movimientos (Gen 9) — ${learnset.length} en total</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">${window.LANG === 'en' ? `Moves (Gen 9) — ${learnset.length} total` : `Movimientos (Gen 9) — ${learnset.length} en total`}</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto">
               ${learnset.slice(0,40).map(m=>`<span style="background:${TYPE_COLORS[m.type]||'#888'};color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700">${m.name}</span>`).join('')}
-              ${learnset.length>40?`<span style="font-size:11px;color:var(--text-hint)">+${learnset.length-40} más</span>`:''}
+              ${learnset.length>40?`<span style="font-size:11px;color:var(--text-hint)">+${learnset.length-40} ${window.LANG === 'en' ? 'more' : 'más'}</span>`:''}
             </div>
           </div>` : ''}
         </div>
       </div>`);
     addBackButton(container, prevQuery, () => handlePokemonSearch(prevQuery, container));
-  } catch(e) { showError(container, 'No se pudo cargar. Intenta de nuevo.'); }
+  } catch(e) { showError(container, window.t ? window.t('glossary.loadError') : 'No se pudo cargar. Intenta de nuevo.'); }
 }
 
 /* ==========================================
@@ -273,8 +279,8 @@ async function loadPokemonDetail(id, container, prevQuery) {
 async function handleMoveSearch(query, container, typeFilter='', catFilter='') {
   const nq = norm(query);
   const hasFilter = typeFilter || catFilter;
-  if (!nq && !hasFilter) { showHint(container, '✏️ Escribe un movimiento o usa los filtros.'); return; }
-  if (!hasFilter && nq.length < 2) { showHint(container, '✏️ Escribe al menos 2 letras o usa los filtros.'); return; }
+  if (!nq && !hasFilter) { showHint(container, window.t ? window.t('glossary.moveSearchHint') : 'Escribe un movimiento o usa los filtros.'); return; }
+  if (!hasFilter && nq.length < 2) { showHint(container, window.t ? window.t('glossary.moveSearchHintShort') : 'Escribe al menos 2 letras o usa los filtros.'); return; }
   showLoading(container);
   try {
     const data = await backendSearch('/api/moves', { q: query, type: typeFilter, category: catFilter, limit: 15 });
@@ -288,10 +294,10 @@ async function handleMoveSearch(query, container, typeFilter='', catFilter='') {
       const tc  = TYPE_COLORS[r.type]||'#888';
       const te  = TYPE_ES[r.type]||r.type;
       const catSrc = CAT_SPRITE[r.category]||'';
-      const bilingual = window.getBilingualNames ? window.getBilingualNames(r) : { es: r.name_es || r.name || r.id, en: r.name || r.id };
+      const names = orderedNames(r);
       return `<button class="suggestion-item suggestion-move-full" data-id="${r.id}">
         <span class="sug-icon">💥</span>
-        <span class="sug-names"><span class="sug-name-es">${bilingual.es}</span>${bilingual.en && bilingual.en !== bilingual.es ? `<span class="sug-name-en">${bilingual.en}</span>` : ''}</span>
+        <span class="sug-names"><span class="sug-name-es">${names.primary}</span>${names.secondary && names.secondary !== names.primary ? `<span class="sug-name-en">${names.secondary}</span>` : ''}</span>
         <span style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0">
           <span style="background:${tc};color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px">${te}</span>
           ${catSrc?`<img src="${catSrc}" style="height:14px">`:''}
@@ -331,12 +337,12 @@ async function loadMoveDetail(id, container, prevQuery) {
     const cat = m.category;
     const catSrc = CAT_SPRITE[cat]||'';
     const pri = (m.priority||0) >= 0 ? `+${m.priority||0}` : m.priority;
-    const moveNames = window.getBilingualNames ? window.getBilingualNames({
+    const moveNames = orderedNames({
       id: m.id,
       name: m.name,
       name_es: m.name_es || (window.getName ? window.getName(m.id, 'moves') : m.name),
       name_en: m.name,
-    }) : { es: m.name_es || m.name, en: m.name || m.id };
+    });
 
     // Texto de efecto secundario
     let secText = '';
@@ -348,50 +354,50 @@ async function loadMoveDetail(id, container, prevQuery) {
         secText = `${m.secondary.chance}% ${b}`;
       }
     }
-    if (m.drain)  secText = `Drena ${Math.round(m.drain[0]/m.drain[1]*100)}% del daño`;
-    if (m.recoil) secText = `${Math.round(m.recoil[0]/m.recoil[1]*100)}% de retroceso`;
+    if (m.drain)  secText = window.LANG === 'en' ? `Heals ${Math.round(m.drain[0]/m.drain[1]*100)}% of dealt damage` : `Drena ${Math.round(m.drain[0]/m.drain[1]*100)}% del daño`;
+    if (m.recoil) secText = window.LANG === 'en' ? `${Math.round(m.recoil[0]/m.recoil[1]*100)}% recoil` : `${Math.round(m.recoil[0]/m.recoil[1]*100)}% de retroceso`;
 
     // Pokémon que lo aprenden
     const learnedByHtml = m.learnedBy?.length ? `
       <div style="margin-top:12px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">Pokémon que lo aprenden en Gen 9 (${m.learnedBy.length}):</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px">${window.LANG === 'en' ? `Pokemon that learn it in Gen 9 (${m.learnedBy.length}):` : `Pokémon que lo aprenden en Gen 9 (${m.learnedBy.length}):`}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;max-height:100px;overflow-y:auto">
           ${m.learnedBy.slice(0,24).map(p=>`
             <span class="poke-mini-chip">
               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.num}.png" class="poke-mini-sprite" alt="${p.name}"/>
               ${p.name}
             </span>`).join('')}
-          ${m.learnedBy.length>24?`<span style="font-size:11px;color:var(--text-hint)">+${m.learnedBy.length-24} más</span>`:''}
+          ${m.learnedBy.length>24?`<span style="font-size:11px;color:var(--text-hint)">+${m.learnedBy.length-24} ${window.LANG === 'en' ? 'more' : 'más'}</span>`:''}
         </div>
       </div>` : '';
 
     setContent(container, `
       <div class="info-card">
         <div class="info-card-header">
-          <span class="info-name">${moveNames.es}</span>
-          <span class="info-name-en">${moveNames.en && moveNames.en !== moveNames.es ? moveNames.en : m.id}</span>
+          <span class="info-name">${moveNames.primary}</span>
+          <span class="info-name-en">${moveNames.secondary && moveNames.secondary !== moveNames.primary ? moveNames.secondary : m.id}</span>
           <span class="type-badge" style="background:${tc}">${te}</span>
           ${catSrc?`<img class="cat-sprite-inline" src="${catSrc}" alt="${CAT_ES[cat]||cat}" title="${CAT_ES[cat]||cat}" />`:''}
         </div>
         <div class="info-stats-row">
-          <div class="info-stat"><span class="info-stat-label">Potencia</span><span class="info-stat-value">${m.power||'—'}</span></div>
-          <div class="info-stat"><span class="info-stat-label">Precisión</span><span class="info-stat-value">${m.accuracy||'—'}</span></div>
+          <div class="info-stat"><span class="info-stat-label">${window.LANG === 'en' ? 'Power' : 'Potencia'}</span><span class="info-stat-value">${m.power||'—'}</span></div>
+          <div class="info-stat"><span class="info-stat-label">${window.LANG === 'en' ? 'Accuracy' : 'Precisión'}</span><span class="info-stat-value">${m.accuracy||'—'}</span></div>
           <div class="info-stat"><span class="info-stat-label">PP</span><span class="info-stat-value">${m.pp||'—'}</span></div>
-          <div class="info-stat"><span class="info-stat-label">Prioridad</span><span class="info-stat-value">${pri}</span></div>
+          <div class="info-stat"><span class="info-stat-label">${window.LANG === 'en' ? 'Priority' : 'Prioridad'}</span><span class="info-stat-value">${pri}</span></div>
         </div>
         ${secText?`<div style="font-size:13px;color:var(--text-muted);margin-bottom:10px">⚡ ${secText}</div>`:''}
-        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(m.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">Ver en WikiDex →</a>
+        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(m.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">${window.LANG === 'en' ? 'View on WikiDex →' : 'Ver en WikiDex →'}</a>
         ${learnedByHtml}
       </div>`);
     addBackButton(container, prevQuery, () => handleMoveSearch(prevQuery, container, '', ''));
-  } catch(e) { showError(container, 'No se pudo cargar.'); }
+  } catch(e) { showError(container, window.t ? window.t('glossary.loadError') : 'No se pudo cargar.'); }
 }
 
 /* ==========================================
    HABILIDADES — usa /api/abilities
    ========================================== */
 async function handleAbilitySearch(query, container) {
-  if (!query || query.length < 2) { showHint(container, '✏️ Escribe al menos 2 letras. Ej: "Intimidación", "levit", "Speed"'); return; }
+  if (!query || query.length < 2) { showHint(container, `${window.t ? window.t('glossary.searchHint') : 'Escribe al menos 2 letras.'} Ej: "Intimidación", "levit", "Speed"`); return; }
   showLoading(container);
   try {
     const data = await backendSearch('/api/abilities', { q: query, limit: 12 });
@@ -437,21 +443,21 @@ async function loadAbilityDetail(id, container, prevQuery) {
         ${a.description ? `<p class="info-desc">${a.description}</p>` : ''}
         ${pokeChips ? `
         <div class="ability-pokemon-list">
-          <span class="ability-pokemon-label">Pokémon con esta habilidad:</span>
+          <span class="ability-pokemon-label">${window.LANG === 'en' ? 'Pokemon with this ability:' : 'Pokémon con esta habilidad:'}</span>
           <div class="ability-pokemon-chips">${pokeChips}</div>
-          ${(a.pokemon||[]).length > 12 ? `<span class="ability-more">+${(a.pokemon||[]).length-12} más en WikiDex</span>` : ''}
+          ${(a.pokemon||[]).length > 12 ? `<span class="ability-more">+${(a.pokemon||[]).length-12} ${window.LANG === 'en' ? 'more on WikiDex' : 'más en WikiDex'}</span>` : ''}
         </div>` : ''}
-        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(a.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">Ver en WikiDex →</a>
+        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(a.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">${window.LANG === 'en' ? 'View on WikiDex →' : 'Ver en WikiDex →'}</a>
       </div>`);
     addBackButton(container, prevQuery, () => handleAbilitySearch(prevQuery, container));
-  } catch(e) { showError(container, 'No se pudo cargar.'); }
+  } catch(e) { showError(container, window.t ? window.t('glossary.loadError') : 'No se pudo cargar.'); }
 }
 
 /* ==========================================
    OBJETOS — usa /api/items
    ========================================== */
 async function handleItemSearch(query, container) {
-  if (!query || query.length < 2) { showHint(container, '✏️ Escribe al menos 2 letras. Ej: "Restos", "lefto", "choice"'); return; }
+  if (!query || query.length < 2) { showHint(container, `${window.t ? window.t('glossary.searchHint') : 'Escribe al menos 2 letras.'} Ej: "Restos", "lefto", "choice"`); return; }
   showLoading(container);
   try {
     const data = await backendSearch('/api/items', { q: query, limit: 12 });
@@ -489,10 +495,10 @@ async function loadItemDetail(id, container, prevQuery) {
           </div>
         </div>
         ${item.description ? `<p class="info-desc">${item.description}</p>` : ''}
-        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(item.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">Ver en WikiDex →</a>
+        <a href="https://www.wikidex.net/wiki/${encodeURIComponent(item.name.replace(/ /g,'_'))}" target="_blank" class="wikidex-btn">${window.LANG === 'en' ? 'View on WikiDex →' : 'Ver en WikiDex →'}</a>
       </div>`);
     addBackButton(container, prevQuery, () => handleItemSearch(prevQuery, container));
-  } catch(e) { showError(container, 'No se pudo cargar.'); }
+  } catch(e) { showError(container, window.t ? window.t('glossary.loadError') : 'No se pudo cargar.'); }
 }
 
 /* ==========================================
@@ -506,11 +512,17 @@ function statColor(v) { return v<50?'#e84545':v<80?'#f5a623':v<100?'#2dc76d':'#4
 function initTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`tab-${btn.dataset.tab}`)?.classList.add('active');
+      activateGlossaryTab(btn.dataset.tab);
     });
+  });
+}
+
+function activateGlossaryTab(tabName = 'terminos') {
+  document.querySelectorAll('.tab-btn').forEach((button) => {
+    button.classList.toggle('active', button.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-content').forEach((content) => {
+    content.classList.toggle('active', content.id === `tab-${tabName}`);
   });
 }
 
@@ -524,11 +536,15 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
    ========================================== */
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
+  if (window.PH_PENDING_GLOSSARY_TAB) {
+    activateGlossaryTab(window.PH_PENDING_GLOSSARY_TAB);
+    window.PH_PENDING_GLOSSARY_TAB = '';
+  }
 
   const configs = [
-    { input:'pokemon-search',  results:'pokemon-results',  handler: handlePokemonSearch,  hint:'✏️ Escribe un Pokémon en español o inglés. Ej: "pikachu", "Drago", "char"' },
-    { input:'ability-search',  results:'ability-results',  handler: handleAbilitySearch,  hint:'✏️ Escribe una habilidad. Ej: "Intimidación", "levit", "Speed"' },
-    { input:'item-search',     results:'item-results',     handler: handleItemSearch,     hint:'✏️ Escribe un objeto. Ej: "Restos", "lefto", "choice"' },
+    { input:'pokemon-search',  results:'pokemon-results',  handler: handlePokemonSearch,  hint: window.LANG === 'en' ? 'Type a Pokemon name in English or Spanish. Example: "pikachu", "Drago", "char"' : '✏️ Escribe un Pokémon en español o inglés. Ej: "pikachu", "Drago", "char"' },
+    { input:'ability-search',  results:'ability-results',  handler: handleAbilitySearch,  hint: window.LANG === 'en' ? 'Type an ability. Example: "Intimidate", "levit", "Speed"' : '✏️ Escribe una habilidad. Ej: "Intimidación", "levit", "Speed"' },
+    { input:'item-search',     results:'item-results',     handler: handleItemSearch,     hint: window.LANG === 'en' ? 'Type an item. Example: "Leftovers", "lefto", "choice"' : '✏️ Escribe un objeto. Ej: "Restos", "lefto", "choice"' },
   ];
 
   configs.forEach(({ input, results, handler, hint }) => {
@@ -549,10 +565,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const mvTF = document.getElementById('move-type-filter');
   const mvCF = document.getElementById('move-cat-filter');
   if (mvI && mvR) {
-    showHint(mvR, '✏️ Escribe un movimiento o usa los filtros de tipo y categoría.');
+    showHint(mvR, window.LANG === 'en' ? 'Type a move or use the type and category filters.' : '✏️ Escribe un movimiento o usa los filtros de tipo y categoría.');
     const run = () => handleMoveSearch(mvI.value, mvR, mvTF?.value||'', mvCF?.value||'');
     mvI.addEventListener('input',  debounce(run, 300));
-    mvI.addEventListener('keydown', e => { if(e.key==='Enter') run(); if(e.key==='Escape'){mvI.value='';showHint(mvR,'✏️ Escribe un movimiento.');} });
+    mvI.addEventListener('keydown', e => { if(e.key==='Enter') run(); if(e.key==='Escape'){mvI.value='';showHint(mvR, window.LANG === 'en' ? 'Type a move.' : '✏️ Escribe un movimiento.');} });
     mvTF?.addEventListener('change', run);
     mvCF?.addEventListener('change', run);
   }
@@ -565,6 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
     searchItems:   handleItemSearch,
   };
 });
+
+window.activateGlossaryTab = activateGlossaryTab;
 
 document.addEventListener('langchange', () => {
   const reruns = [
