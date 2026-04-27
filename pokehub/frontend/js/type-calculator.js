@@ -123,7 +123,7 @@
                 <span>${typeLabel(type)}</span>
               </span>
             `).join('')
-            : '<span class="typecalc-empty">Ninguno</span>'}
+            : `<span class="typecalc-empty">${window.t ? window.t('typecalc.none') : 'Ninguno'}</span>`}
         </div>
       </div>
     `;
@@ -141,20 +141,20 @@
     const attackView = state.editing === 'attack';
     const labels = attackView
       ? [
-        ['Inflige 4x a', [4, 8]],
-        ['Inflige 2x a', [2]],
-        ['Inflige 1x a', [1]],
-        ['Inflige 0,5x a', [0.5]],
-        ['Inflige 0,25x a', [0.25]],
-        ['Inflige 0x a', [0]],
+        [window.t ? window.t('typecalc.deals4') : 'Inflige 4x a', [4, 8]],
+        [window.t ? window.t('typecalc.deals2') : 'Inflige 2x a', [2]],
+        [window.t ? window.t('typecalc.deals1') : 'Inflige 1x a', [1]],
+        [window.t ? window.t('typecalc.deals05') : 'Inflige 0,5x a', [0.5]],
+        [window.t ? window.t('typecalc.deals025') : 'Inflige 0,25x a', [0.25]],
+        [window.t ? window.t('typecalc.deals0') : 'Inflige 0x a', [0]],
       ]
       : [
-        ['Sufre 4x por', [4, 8]],
-        ['Sufre 2x por', [2]],
-        ['Sufre 1x por', [1]],
-        ['Sufre 0,5x por', [0.5]],
-        ['Sufre 0,25x por', [0.25]],
-        ['Sufre 0x por', [0]],
+        [window.t ? window.t('typecalc.takes4') : 'Sufre 4x por', [4, 8]],
+        [window.t ? window.t('typecalc.takes2') : 'Sufre 2x por', [2]],
+        [window.t ? window.t('typecalc.takes1') : 'Sufre 1x por', [1]],
+        [window.t ? window.t('typecalc.takes05') : 'Sufre 0,5x por', [0.5]],
+        [window.t ? window.t('typecalc.takes025') : 'Sufre 0,25x por', [0.25]],
+        [window.t ? window.t('typecalc.takes0') : 'Sufre 0x por', [0]],
       ];
 
     return labels
@@ -167,13 +167,13 @@
       return `
         <aside class="typecalc-sidebar">
           <div class="typecalc-side-group">
-            <div class="typecalc-side-title">Defensa</div>
-            <button class="typecalc-side-btn active" type="button">Solo</button>
+            <div class="typecalc-side-title">${window.t ? window.t('typecalc.defense') : 'Defensa'}</div>
+            <button class="typecalc-side-btn active" type="button">${window.t ? window.t('typecalc.solo') : 'Solo'}</button>
           </div>
           <div class="typecalc-side-divider"></div>
           <div class="typecalc-side-group">
-            <div class="typecalc-side-title">Editar</div>
-            <button class="typecalc-side-btn active" type="button">Tipos</button>
+            <div class="typecalc-side-title">${window.t ? window.t('typecalc.defense') : 'Defensa'}</div>
+            <button class="typecalc-side-btn active" type="button">${window.t ? window.t('typecalc.editTypes') : 'Tipos'}</button>
           </div>
         </aside>
       `;
@@ -182,15 +182,15 @@
     return `
       <aside class="typecalc-sidebar">
         <div class="typecalc-side-group">
-          <div class="typecalc-side-title">Ataque</div>
-          <button class="typecalc-side-btn ${state.attackMode === 1 ? 'active' : ''}" data-typecalc-attack-mode="1" type="button">Single</button>
-          <button class="typecalc-side-btn ${state.attackMode === 2 ? 'active' : ''}" data-typecalc-attack-mode="2" type="button">Dual</button>
+          <div class="typecalc-side-title">${window.t ? window.t('typecalc.attack') : 'Ataque'}</div>
+          <button class="typecalc-side-btn ${state.attackMode === 1 ? 'active' : ''}" data-typecalc-attack-mode="1" type="button">${window.t ? window.t('typecalc.single') : 'Single'}</button>
+          <button class="typecalc-side-btn ${state.attackMode === 2 ? 'active' : ''}" data-typecalc-attack-mode="2" type="button">${window.t ? window.t('typecalc.dual') : 'Dual'}</button>
         </div>
         <div class="typecalc-side-divider"></div>
         <div class="typecalc-side-group">
-          <div class="typecalc-side-title">Defensa</div>
-          <button class="typecalc-side-btn ${state.editing === 'defense' ? 'active' : ''}" data-typecalc-edit="defense" type="button">Solo</button>
-          <button class="typecalc-side-btn ${state.editing === 'attack' ? 'active' : ''}" data-typecalc-edit="attack" type="button">Ataque</button>
+          <div class="typecalc-side-title">${window.t ? window.t('typecalc.defense') : 'Defensa'}</div>
+          <button class="typecalc-side-btn ${state.editing === 'defense' ? 'active' : ''}" data-typecalc-edit="defense" type="button">${window.t ? window.t('typecalc.solo') : 'Solo'}</button>
+          <button class="typecalc-side-btn ${state.editing === 'attack' ? 'active' : ''}" data-typecalc-edit="attack" type="button">${window.t ? window.t('typecalc.attack') : 'Ataque'}</button>
         </div>
       </aside>
     `;
@@ -205,7 +205,7 @@
       <div class="typecalc-app ${compact ? 'typecalc-app-compact' : ''}">
         ${buildSidebar(state, compact)}
         <section class="typecalc-picker">
-          <div class="typecalc-panel-title">Elige los tipos</div>
+          <div class="typecalc-panel-title">${window.t ? window.t('typecalc.chooseTypes') : 'Elige los tipos'}</div>
           <div class="typecalc-picked-row">
             ${currentTypes.map(typeChip).join('')}
           </div>
@@ -213,8 +213,8 @@
             ${TYPES.map((type) => typeButton(type, currentTypes.includes(type))).join('')}
           </div>
           <div class="typecalc-actions">
-            ${showCopy ? '<button class="typecalc-action-btn" data-typecalc-copy type="button">Copiar link</button>' : ''}
-            <button class="typecalc-action-btn" data-typecalc-clear type="button">Limpiar</button>
+            ${showCopy ? `<button class="typecalc-action-btn" data-typecalc-copy type="button">${window.t ? window.t('typecalc.copyLink') : 'Copiar link'}</button>` : ''}
+            <button class="typecalc-action-btn" data-typecalc-clear type="button">${window.t ? window.t('typecalc.clear') : 'Limpiar'}</button>
           </div>
         </section>
         <section class="typecalc-results-pane">
@@ -319,7 +319,7 @@
           const button = container.querySelector('[data-typecalc-copy]');
           if (button) {
             const original = button.textContent;
-            button.textContent = 'Link copiado';
+            button.textContent = window.t ? window.t('typecalc.copied') : 'Link copiado';
             setTimeout(() => { button.textContent = original; }, 1200);
           }
         } catch (error) {

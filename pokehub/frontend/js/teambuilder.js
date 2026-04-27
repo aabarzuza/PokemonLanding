@@ -48,6 +48,22 @@ const TYPE_ES_TB = {
   steel:'Acero', fairy:'Hada'
 };
 
+function tbT(es, en) {
+  return window.LANG === 'en' ? en : es;
+}
+
+function tbStatLabel(key) {
+  const labels = {
+    hp: 'HP',
+    atk: tbT('Ataque', 'Attack'),
+    def: tbT('Defensa', 'Defense'),
+    spa: 'SpA',
+    spd: 'SpD',
+    spe: tbT('Velocidad', 'Speed'),
+  };
+  return labels[key] || key;
+}
+
 /* ======================================================
    GRID DE SLOTS
    ====================================================== */
@@ -65,16 +81,16 @@ function renderGrid() {
         <img class="slot-sprite" src="${slot.sprite}" alt="${slot.name_es}" />
         <div class="slot-info">
           <div class="slot-name">${slot.name_es || slot.name_en}</div>
-          <div class="slot-sub">${slot.item || 'Sin objeto'}</div>
+          <div class="slot-sub">${slot.item || tbT('Sin objeto', 'No item')}</div>
           <div class="slot-types">${slot.types.map(t =>
             `<span class="type-badge-sm" style="background:${TYPE_COLORS_TB[t]||'#888'}">${TYPE_ES_TB[t]||t}</span>`
           ).join('')}</div>
         </div>
-        <button class="slot-remove" data-idx="${i}" title="Eliminar">✕</button>`;
+        <button class="slot-remove" data-idx="${i}" title="${tbT('Eliminar', 'Remove')}">✕</button>`;
     } else {
       div.innerHTML = `
         <div class="slot-empty-icon">+</div>
-        <div class="slot-empty-text">Añadir Pokémon</div>`;
+        <div class="slot-empty-text">${tbT('Añadir Pokémon', 'Add Pokemon')}</div>`;
     }
 
     div.addEventListener('click', e => {
@@ -122,6 +138,11 @@ function closeEditor() {
   refreshTypePanelIfOpen();
 }
 
+document.addEventListener('langchange', () => {
+  renderGrid();
+  if (currentEditIdx !== null) buildEditor(currentEditIdx);
+});
+
 function buildEditor(idx) {
   const slot   = TEAM[idx];
   const editor = document.getElementById('slot-editor');
@@ -130,19 +151,19 @@ function buildEditor(idx) {
 
   editor.innerHTML = `
     <div class="editor-header">
-      <h3 class="editor-title">Editando Slot ${idx + 1}${slot.name_es ? ' — ' + slot.name_es : ''}</h3>
-      <button class="icon-btn" id="btn-close-editor" title="Cerrar">✕</button>
+      <h3 class="editor-title">${tbT('Editando Slot', 'Editing Slot')} ${idx + 1}${slot.name_es ? ' — ' + slot.name_es : ''}</h3>
+      <button class="icon-btn" id="btn-close-editor" title="${tbT('Cerrar', 'Close')}">✕</button>
     </div>
 
     <div class="editor-section">
-      <label class="editor-label">Pokémon</label>
+      <label class="editor-label">${tbT('Pokémon', 'Pokemon')}</label>
       <div class="editor-poke-row">
         ${slot.sprite
           ? `<img class="editor-poke-sprite" src="${slot.sprite}" alt="${slot.name_es}" />`
           : `<div class="editor-poke-placeholder">?</div>`}
         <div class="editor-poke-search-wrap" style="flex:1;position:relative;">
           <input type="text" id="ed-poke-input" class="editor-input"
-            placeholder="Busca en español o inglés..." value="${slot.name_es || slot.name_en}"
+            placeholder="${tbT('Busca en español o inglés...', 'Search in Spanish or English...')}" value="${slot.name_es || slot.name_en}"
             autocomplete="off" />
           <div id="ed-poke-sugg" class="editor-suggestions"></div>
         </div>
@@ -151,31 +172,31 @@ function buildEditor(idx) {
 
     <div class="editor-row-3">
       <div class="editor-section" style="position:relative;">
-        <label class="editor-label">Objeto</label>
-        <input type="text" id="ed-item" class="editor-input" placeholder="Busca un objeto..." value="${slot.item}" autocomplete="off" />
+        <label class="editor-label">${tbT('Objeto', 'Item')}</label>
+        <input type="text" id="ed-item" class="editor-input" placeholder="${tbT('Busca un objeto...', 'Search an item...')}" value="${slot.item}" autocomplete="off" />
         <div id="ed-item-sugg" class="editor-suggestions"></div>
       </div>
       <div class="editor-section" style="position:relative;">
-        <label class="editor-label">Habilidad</label>
-        <input type="text" id="ed-ability" class="editor-input" placeholder="Busca una habilidad..." value="${slot.ability}" autocomplete="off" />
+        <label class="editor-label">${tbT('Habilidad', 'Ability')}</label>
+        <input type="text" id="ed-ability" class="editor-input" placeholder="${tbT('Busca una habilidad...', 'Search an ability...')}" value="${slot.ability}" autocomplete="off" />
         <div id="ed-ability-sugg" class="editor-suggestions"></div>
       </div>
       <div class="editor-section">
-        <label class="editor-label">Nature</label>
+        <label class="editor-label">${tbT('Naturaleza', 'Nature')}</label>
         <select id="ed-nature" class="editor-select">
-          <option value="">— Elige —</option>
+          <option value="">${tbT('— Elige —', '— Choose —')}</option>
           ${NATURES.map(n => `<option value="${n}"${slot.nature===n?' selected':''}>${n}</option>`).join('')}
         </select>
       </div>
     </div>
 
     <div class="editor-section">
-      <label class="editor-label">Movimientos</label>
+      <label class="editor-label">${tbT('Movimientos', 'Moves')}</label>
       <div class="editor-moves-grid">
         ${slot.moves.map((m, i) => `
           <div class="editor-move-wrap" style="position:relative;">
             <input type="text" id="ed-move-${i}" class="editor-input"
-              placeholder="Movimiento ${i+1}" value="${m}" data-move="${i}" autocomplete="off" />
+              placeholder="${tbT('Movimiento', 'Move')} ${i+1}" value="${m}" data-move="${i}" autocomplete="off" />
             <div id="ed-move-sugg-${i}" class="editor-suggestions editor-move-sugg"></div>
           </div>`).join('')}
       </div>
@@ -189,7 +210,7 @@ function buildEditor(idx) {
       <div class="editor-stats-grid">
         ${STAT_KEYS.map(k => `
           <div class="editor-stat-row">
-            <label class="editor-stat-label">${STAT_LABELS[k]}</label>
+            <label class="editor-stat-label">${tbStatLabel(k)}</label>
             <input type="number" id="ev-${k}" class="editor-stat-input"
               min="0" max="252" step="4" value="${slot.evs[k]}"
               data-stat="${k}" data-type="ev" />
@@ -202,7 +223,7 @@ function buildEditor(idx) {
       <div class="editor-stats-grid">
         ${STAT_KEYS.map(k => `
           <div class="editor-stat-row">
-            <label class="editor-stat-label">${STAT_LABELS[k]}</label>
+            <label class="editor-stat-label">${tbStatLabel(k)}</label>
             <input type="number" id="iv-${k}" class="editor-stat-input"
               min="0" max="31" value="${slot.ivs[k]}"
               data-stat="${k}" data-type="iv" />
@@ -211,7 +232,7 @@ function buildEditor(idx) {
     </div>
 
     <div class="editor-actions">
-      <button class="btn-secondary" id="btn-close-editor-2">Cerrar editor</button>
+      <button class="btn-secondary" id="btn-close-editor-2">${tbT('Cerrar editor', 'Close editor')}</button>
     </div>`;
 
   /* ---- Eventos del editor ---- */
@@ -306,7 +327,7 @@ async function searchPokeInEditor(query, slotIdx) {
   if (!sugg) return;
   if (!query || query.length < 2) { sugg.innerHTML = ''; return; }
 
-  sugg.innerHTML = '<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">Buscando...</div>';
+  sugg.innerHTML = `<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">${tbT('Buscando...', 'Searching...')}</div>`;
 
   try {
     // Usar backend
@@ -314,7 +335,7 @@ async function searchPokeInEditor(query, slotIdx) {
     const data = await res.json();
     const results = data.results || [];
 
-    if (!results.length) { sugg.innerHTML = '<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">Sin resultados</div>'; return; }
+    if (!results.length) { sugg.innerHTML = `<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">${tbT('Sin resultados', 'No results')}</div>`; return; }
 
     sugg.innerHTML = results.map(p =>
       `<button class="editor-sugg-item" data-en="${p.id}" data-id="${p.num}" data-name="${p.name}" data-es="${p.name_es || p.name}">
@@ -341,7 +362,7 @@ async function searchPokeInEditor(query, slotIdx) {
     const all = Object.values(window.SD_POKEMON || {});
     const results = all.filter(p => normFn(p.name).includes(nq) || normFn(p.id).includes(nq))
       .sort((a,b) => normFn(a.name).startsWith(nq)?-1:1).slice(0,8);
-    if (!results.length) { sugg.innerHTML = '<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">Sin resultados</div>'; return; }
+    if (!results.length) { sugg.innerHTML = `<div style="padding:6px 12px;font-size:12px;color:var(--text-hint);">${tbT('Sin resultados', 'No results')}</div>`; return; }
     sugg.innerHTML = results.map(p =>
       `<button class="editor-sugg-item" data-en="${p.id}" data-id="${p.num}" data-name="${p.name}" data-es="${window.PH_API?.helpers?.getNameEs?.('pokemon', p.id, p.name) || p.name}">
         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.num}.png"
@@ -386,7 +407,7 @@ async function selectPokemonFromBackend(nameEn, id, nameEs, slotIdx) {
     renderGrid();
     openEditor(slotIdx);
     refreshTypePanelIfOpen();
-  } catch(e) { console.error('Error al seleccionar Pokémon:', e); }
+  } catch(e) { console.error(window.LANG === 'en' ? 'Error selecting Pokemon:' : 'Error al seleccionar Pokémon:', e); }
 }
 
 // Mantener alias por si se llama desde otros sitios
@@ -396,7 +417,7 @@ async function selectPokemon(nameEn, id, slotIdx) {
 
 function refreshSlotMini(idx) {
   const slotEl = document.querySelector(`.team-slot[data-idx="${idx}"] .slot-sub`);
-  if (slotEl) slotEl.textContent = TEAM[idx].item || 'Sin objeto';
+  if (slotEl) slotEl.textContent = TEAM[idx].item || tbT('Sin objeto', 'No item');
 }
 
 /* ======================================================
@@ -474,7 +495,7 @@ function tbStaticSearch(type, query) {
 }
 
 function renderEditorSugg(container, results, onSelect, renderItem) {
-  if (!results.length) { container.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { container.innerHTML = `<div class="ed-sugg-empty">${tbT('Sin resultados', 'No results')}</div>`; return; }
   container.innerHTML = results.map((r, i) => renderItem(r, i)).join('');
   container.querySelectorAll('.ed-sugg-btn').forEach(btn => {
     btn.addEventListener('mousedown', e => {
@@ -496,7 +517,7 @@ async function searchItemInEditor(query, slotIdx) {
     results = results.map(r => ({ id: r.id, name: r.name, name_es: r.name_es || r.name, num: r.num }));
   } catch { results = tbStaticSearch('items', query); }
 
-  if (!results.length) { sugg.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { sugg.innerHTML = `<div class="ed-sugg-empty">${tbT('Sin resultados', 'No results')}</div>`; return; }
 
   sugg.innerHTML = results.map(r =>
     `<button class="ed-sugg-btn" data-name="${r.id}" data-es="${r.name_es || r.name}">
@@ -532,7 +553,7 @@ async function searchAbilityInEditor(query, slotIdx) {
     results = results.map(r => ({ id: r.id, name: r.name, name_es: r.name_es || r.name, rating: r.rating }));
   } catch { results = tbStaticSearch('abilities', query); }
 
-  if (!results.length) { sugg.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { sugg.innerHTML = `<div class="ed-sugg-empty">${tbT('Sin resultados', 'No results')}</div>`; return; }
 
   sugg.innerHTML = results.map(r =>
     `<button class="ed-sugg-btn" data-name="${r.id}" data-es="${r.name_es || r.name}">
@@ -561,7 +582,7 @@ async function searchMoveInEditor(query, slotIdx, moveIdx) {
   if (!sugg) return;
   if (!query || query.length < 2) { sugg.innerHTML = ''; return; }
 
-  sugg.innerHTML = '<div class="ed-sugg-loading">Buscando...</div>';
+  sugg.innerHTML = `<div class="ed-sugg-loading">${tbT('Buscando...', 'Searching...')}</div>`;
 
   let results;
   try {
@@ -570,7 +591,7 @@ async function searchMoveInEditor(query, slotIdx, moveIdx) {
     results = tbStaticSearch('moves', query);
   }
 
-  if (!results.length) { sugg.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { sugg.innerHTML = `<div class="ed-sugg-empty">${tbT('Sin resultados', 'No results')}</div>`; return; }
 
   sugg.innerHTML = results.map(d => {
     const tc  = TYPE_COLORS_MOVE[d.type] || '#888';
@@ -597,8 +618,8 @@ async function searchMoveInEditor(query, slotIdx, moveIdx) {
         </span>
       </div>
       <div class="ed-move-stats">
-        <span title="Potencia">⚡ ${pow}</span>
-        <span title="Precisión">🎯 ${acc}</span>
+        <span title="${tbT('Potencia', 'Power')}">⚡ ${pow}</span>
+        <span title="${tbT('Precisión', 'Accuracy')}">🎯 ${acc}</span>
         <span title="PP">PP ${d.pp ?? '—'}</span>
       </div>
       ${secText ? `<div class="ed-move-effect">${secText}</div>` : ''}
@@ -630,8 +651,8 @@ function setSidePanel(panel) {
   if (!content) return;
   if (panel === 'none')     { content.innerHTML = ''; return; }
   if (panel === 'types')    { renderTypeChart(content); return; }
-  if (panel === 'moves')    { content.innerHTML = '<div class="panel-hint">Usa la pestaña 💥 Movimientos del Glosario para buscar movimientos en detalle.</div>'; return; }
-  if (panel === 'abilities'){ content.innerHTML = '<div class="panel-hint">Usa la pestaña ✨ Habilidades del Glosario para buscar habilidades en detalle.</div>'; return; }
+  if (panel === 'moves')    { content.innerHTML = `<div class="panel-hint">${tbT('Usa la pestaña 💥 Movimientos del Glosario para buscar movimientos en detalle.', 'Use the 💥 Moves tab in the Glossary to search moves in detail.')}</div>`; return; }
+  if (panel === 'abilities'){ content.innerHTML = `<div class="panel-hint">${tbT('Usa la pestaña ✨ Habilidades del Glosario para buscar habilidades en detalle.', 'Use the ✨ Abilities tab in the Glossary to search abilities in detail.')}</div>`; return; }
 }
 
 /* Tabla de tipos 18x18 */

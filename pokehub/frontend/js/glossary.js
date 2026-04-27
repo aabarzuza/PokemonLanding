@@ -1,6 +1,6 @@
 /* =========================================
-   JS/GLOSSARY.JS — Buscador de términos
-   Normalizado: sin acentos, mayus/minus, parcial
+   JS/GLOSSARY.JS
+   This file controls the glossary term search.
    ========================================= */
 
 const searchInput    = document.getElementById('glossary-search');
@@ -32,8 +32,8 @@ function slugify(str) {
 function renderGlossary(items) {
   glossaryList.innerHTML = '';
   if (!items.length) {
-    glossaryList.innerHTML = '<div class="glossary-empty">No se encontraron términos. Prueba con otra búsqueda.</div>';
-    resultCount.textContent = '0 términos';
+    glossaryList.innerHTML = `<div class="glossary-empty">${window.LANG === 'en' ? 'No terms found. Try another search.' : 'No se encontraron términos. Prueba con otra búsqueda.'}</div>`;
+    resultCount.textContent = window.LANG === 'en' ? '0 terms' : '0 términos';
     return;
   }
   items.forEach(item => {
@@ -47,7 +47,9 @@ function renderGlossary(items) {
       '<p class="glossary-definition">' + item.definition + '</p>';
     glossaryList.appendChild(card);
   });
-  resultCount.textContent = items.length + ' término' + (items.length !== 1 ? 's' : '');
+  resultCount.textContent = window.LANG === 'en'
+    ? `${items.length} term${items.length !== 1 ? 's' : ''}`
+    : `${items.length} término${items.length !== 1 ? 's' : ''}`;
 }
 
 function filterGlossary() {
@@ -82,3 +84,7 @@ searchInput.addEventListener('keydown', e => {
 
 buildCategoryFilter();
 filterGlossary();
+
+document.addEventListener('langchange', () => {
+  filterGlossary();
+});

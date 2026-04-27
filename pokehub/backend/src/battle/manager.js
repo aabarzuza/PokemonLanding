@@ -16,6 +16,7 @@ class BattleManager {
   constructor() {
     // Mapa de salas activas.
     // La clave es el id de la sala y el valor es un objeto BattleRoom.
+    // Map = estructura parecida a un diccionario clave -> valor.
     this.rooms = new Map();
 
     // Cola de matchmaking.
@@ -38,9 +39,11 @@ class BattleManager {
   // Mete a un jugador en la cola o lo empareja si ya hay rival esperando.
   joinQueue(ws, { name, team, teamText, teamMode, format = 'gen9ou' }) {
     // Primero limpiamos conexiones cerradas para no dejar basura en la cola.
+    // readyState === 1 significa que el WebSocket sigue abierto.
     this.queue = this.queue.filter((entry) => entry.ws.readyState === 1);
 
     // Buscamos si ya hay alguien esperando con el mismo formato.
+    // findIndex devuelve la posicion del primer rival compatible.
     const opponentIndex = this.queue.findIndex((entry) => entry.format === format);
 
     // Si encontramos rival, creamos la batalla.
@@ -88,7 +91,7 @@ class BattleManager {
     this.queue.push({ ws, name, team, teamText, teamMode, format });
 
     // Avisamos al cliente de que está esperando.
-    ws.send(JSON.stringify({ type: 'waiting', message: 'Buscando rival...' }));
+    ws.send(JSON.stringify({ type: 'waiting', code: 'queue_waiting' }));
 
     // Mensaje útil en consola.
     console.log(`⏳ ${name} en cola (${format}). Cola: ${this.queue.length}`);
@@ -123,6 +126,7 @@ class BattleManager {
     }
 
     // Si existe, añadimos el jugador.
+    // payload = paquete de datos extra: equipo, texto importado, modo, etc.
     room.addPlayer(slot, ws, name, payload);
 
     // Y devolvemos la sala.
@@ -156,7 +160,9 @@ class BattleManager {
 const manager = new BattleManager();
 
 // Cada 30 minutos intentamos limpiar salas viejas.
+// setInterval ejecuta una funcion cada cierto tiempo.
 setInterval(() => manager.cleanup(), 30 * 60 * 1000);
 
 // Exportamos el gestor para poder usarlo desde server.js.
+// module.exports = forma clasica de Node para compartir codigo entre archivos.
 module.exports = { manager };

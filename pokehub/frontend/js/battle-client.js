@@ -15,6 +15,7 @@
     compactToolTab: 'pokemon',
     protocolQueue: [],
     protocolTimer: null,
+    logPinnedToBottom: true,
     sim: {
       p1: { name: 'Jugador 1', active: [], team: [] },
       p2: { name: 'Jugador 2', active: [], team: [] },
@@ -63,6 +64,14 @@
     { id: 'ragingbolt', moves: ['Thunderclap', 'Thunderbolt', 'Draco Meteor', 'Calm Mind'], item: 'Leftovers', ability: 'Protosynthesis', nature: 'Modest', evs: { hp: 72, spa: 252, spe: 184 } },
     { id: 'ogerponwellspring', moves: ['Ivy Cudgel', 'Power Whip', 'U-turn', 'Encore'], item: 'Wellspring Mask', ability: 'Water Absorb', nature: 'Jolly', evs: { atk: 252, spd: 4, spe: 252 } },
     { id: 'ironmoth', moves: ['Fiery Dance', 'Sludge Wave', 'Energy Ball', 'Morning Sun'], item: 'Booster Energy', ability: 'Quark Drive', nature: 'Timid', evs: { hp: 4, spa: 252, spe: 252 } },
+    { id: 'heatran', moves: ['Magma Storm', 'Earth Power', 'Taunt', 'Stealth Rock'], item: 'Leftovers', ability: 'Flash Fire', nature: 'Calm', evs: { hp: 248, spd: 252, spe: 8 } },
+    { id: 'zamazenta', moves: ['Body Press', 'Crunch', 'Heavy Slam', 'Howl'], item: 'Leftovers', ability: 'Dauntless Shield', nature: 'Jolly', evs: { hp: 252, atk: 4, spe: 252 } },
+    { id: 'garganacl', moves: ['Salt Cure', 'Recover', 'Protect', 'Earthquake'], item: 'Leftovers', ability: 'Purifying Salt', nature: 'Careful', evs: { hp: 252, def: 4, spd: 252 } },
+    { id: 'roaringmoon', moves: ['Knock Off', 'Acrobatics', 'Earthquake', 'Dragon Dance'], item: 'Booster Energy', ability: 'Protosynthesis', nature: 'Jolly', evs: { atk: 252, spd: 4, spe: 252 } },
+    { id: 'enamorus', moves: ['Moonblast', 'Earth Power', 'Mystical Fire', 'Calm Mind'], item: 'Heavy-Duty Boots', ability: 'Contrary', nature: 'Timid', evs: { hp: 4, spa: 252, spe: 252 } },
+    { id: 'samurotthisui', moves: ['Ceaseless Edge', 'Knock Off', 'Aqua Jet', 'Swords Dance'], item: 'Focus Sash', ability: 'Sharpness', nature: 'Jolly', evs: { atk: 252, spd: 4, spe: 252 } },
+    { id: 'moltres', moves: ['Flamethrower', 'Hurricane', 'Roost', 'U-turn'], item: 'Heavy-Duty Boots', ability: 'Flame Body', nature: 'Timid', evs: { hp: 248, def: 28, spe: 232 } },
+    { id: 'cinderace', moves: ['Pyro Ball', 'U-turn', 'Court Change', 'High Jump Kick'], item: 'Heavy-Duty Boots', ability: 'Libero', nature: 'Jolly', evs: { atk: 252, spd: 4, spe: 252 } },
   ];
 
   function q(id) { return document.getElementById(id); }
@@ -80,6 +89,15 @@
   // Extrae el nombre visible de especie desde el protocolo.
   function speciesName(value) {
     return ((`${value || ''}`.split(': ').pop() || '').split(',')[0] || '').trim();
+  }
+
+  function esc(value) {
+    return `${value ?? ''}`
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function htmlToPlainText(html) {
@@ -160,7 +178,14 @@
   }
 
   function statusName(status) {
-    return { brn: 'Quemado', par: 'Paralizado', slp: 'Dormido', frz: 'Congelado', psn: 'Envenenado', tox: 'Tóxico' }[status] || status;
+    return {
+      brn: window.LANG === 'en' ? 'Burned' : 'Quemado',
+      par: window.LANG === 'en' ? 'Paralyzed' : 'Paralizado',
+      slp: window.LANG === 'en' ? 'Asleep' : 'Dormido',
+      frz: window.LANG === 'en' ? 'Frozen' : 'Congelado',
+      psn: window.LANG === 'en' ? 'Poisoned' : 'Envenenado',
+      tox: window.LANG === 'en' ? 'Badly poisoned' : 'Tóxico',
+    }[status] || status;
   }
 
   function statName(stat) {
@@ -181,6 +206,47 @@
   function boostedStatValue(base, stage) {
     if (!base) return null;
     return Math.round(base * Number(statMultiplier(stage)));
+  }
+
+  function statRange(baseStat, stat) {
+    const base = Number(baseStat) || 0;
+    if (!base) return { min: null, max: null };
+    if (stat === 'hp') {
+      return {
+        min: (2 * base) + 110,
+        max: (2 * base) + 204,
+      };
+    }
+    return {
+      min: Math.floor(((2 * base) + 5) * 0.9),
+      max: Math.floor(((2 * base) + 99) * 1.1),
+    };
+  }
+
+  function exactBattleStat(baseStat, stat, ev = 0, iv = 31, nature = 'Hardy') {
+    const base = Number(baseStat) || 0;
+    if (!base) return null;
+    if (stat === 'hp') return (2 * base) + iv + Math.floor(ev / 4) + 110;
+    const natureData = {
+      Adamant: { plus: 'atk', minus: 'spa' }, Jolly: { plus: 'spe', minus: 'spa' },
+      Modest: { plus: 'spa', minus: 'atk' }, Timid: { plus: 'spe', minus: 'atk' },
+      Bold: { plus: 'def', minus: 'atk' }, Calm: { plus: 'spd', minus: 'atk' },
+      Impish: { plus: 'def', minus: 'spa' }, Careful: { plus: 'spd', minus: 'spa' },
+      Hasty: { plus: 'spe', minus: 'def' }, Naive: { plus: 'spe', minus: 'spd' },
+      Mild: { plus: 'spa', minus: 'def' }, Rash: { plus: 'spa', minus: 'spd' },
+      Lonely: { plus: 'atk', minus: 'def' }, Naughty: { plus: 'atk', minus: 'spd' },
+      Brave: { plus: 'atk', minus: 'spe' }, Relaxed: { plus: 'def', minus: 'spe' },
+      Lax: { plus: 'def', minus: 'spd' }, Quiet: { plus: 'spa', minus: 'spe' },
+      Sassy: { plus: 'spd', minus: 'spe' }, Gentle: { plus: 'spd', minus: 'def' },
+    }[nature] || {};
+    const neutral = (2 * base) + iv + Math.floor(ev / 4) + 5;
+    const mult = natureData.plus === stat ? 1.1 : natureData.minus === stat ? 0.9 : 1;
+    return Math.floor(neutral * mult);
+  }
+
+  function possibleAbilitiesFor(name) {
+    const pokemon = pokemonData(name);
+    return pokemon?.abilities ? Object.values(pokemon.abilities).filter(Boolean) : [];
   }
 
   function pokemonTypes(name) {
@@ -222,6 +288,26 @@
     return found?.[0] || normalizeText(value);
   }
 
+  function maxPpForMove(moveId) {
+    const data = moveData(moveId);
+    const base = Number(data?.pp) || 0;
+    return base ? Math.floor(base * 8 / 5) : null;
+  }
+
+  function ensureMoveTracker(activeState, moveId, moveNameText) {
+    if (!activeState) return null;
+    if (!activeState.revealedMoves) activeState.revealedMoves = {};
+    if (!activeState.revealedMoves[moveId]) {
+      activeState.revealedMoves[moveId] = {
+        id: moveId,
+        name: moveNameText,
+        used: 0,
+        maxpp: maxPpForMove(moveId),
+      };
+    }
+    return activeState.revealedMoves[moveId];
+  }
+
   function normalizeSavedTeamText(text) {
     const blocks = `${text || ''}`.trim().split(/\n\s*\n/).filter(Boolean);
     return blocks.map((block) => {
@@ -260,7 +346,14 @@
 
   function sidePokemon(request, index) { return request?.side?.pokemon?.[index] || null; }
   function isAlive(mon) { return !!mon && !`${mon.condition || ''}`.endsWith(' fnt'); }
-  function targetTag(target) { return { ' 1': 'Rival 1', ' 2': 'Rival 2', ' -1': 'Yo', ' -2': 'Aliado' }[target] || target.trim(); }
+  function targetTag(target) {
+    return {
+      ' 1': window.LANG === 'en' ? 'Opponent 1' : 'Rival 1',
+      ' 2': window.LANG === 'en' ? 'Opponent 2' : 'Rival 2',
+      ' -1': window.LANG === 'en' ? 'Self' : 'Yo',
+      ' -2': window.LANG === 'en' ? 'Ally' : 'Aliado',
+    }[target] || target.trim();
+  }
   function moveData(move) { return getMovedex()[move?.id || normalizeText(move?.move || move)] || null; }
 
   function bilingualMoveNames(move) {
@@ -268,25 +361,27 @@
     const data = moveData(move);
     const english = data?.name || move?.move || move || id || 'Movimiento';
     const pair = translationPair('moves', id, english);
-    return pair.es !== pair.en ? { primary: pair.es, secondary: pair.en } : { primary: pair.es, secondary: '' };
+    const primary = window.LANG === 'en' ? (pair.en || pair.es) : (pair.es || pair.en);
+    const secondary = window.LANG === 'en' ? (pair.es || '') : (pair.en || '');
+    return primary !== secondary ? { primary, secondary } : { primary, secondary: '' };
   }
 
   function moveTooltipInfo(move) {
     const id = move?.id || normalizeText(move?.move || move);
     const data = moveData(move) || {};
     const pair = translationPair('moves', id, data.name || move?.move || id);
-    const description = window.TRANSLATIONS_ES?.moves?.[id]?.[2] || 'Sin descripción.';
+    const description = window.TRANSLATIONS_ES?.moves?.[id]?.[2] || (window.LANG === 'en' ? 'No description.' : 'Sin descripción.');
     const category = (data.category || '').toLowerCase();
     const categoryLabel = category === 'physical'
-      ? 'Físico'
+      ? (window.LANG === 'en' ? 'Physical' : 'Físico')
       : category === 'special'
-        ? 'Especial'
+        ? (window.LANG === 'en' ? 'Special' : 'Especial')
         : category === 'status'
-          ? 'Estado'
-          : 'Movimiento';
+          ? (window.LANG === 'en' ? 'Status' : 'Estado')
+          : (window.LANG === 'en' ? 'Move' : 'Movimiento');
     return {
-      english: pair.en || data.name || move?.move || id,
-      spanish: pair.es || pair.en || data.name || move?.move || id,
+      english: window.LANG === 'en' ? (pair.en || data.name || move?.move || id) : (pair.es || pair.en || data.name || move?.move || id),
+      spanish: window.LANG === 'en' ? (pair.es || pair.en || data.name || move?.move || id) : (pair.en || pair.es || data.name || move?.move || id),
       description,
       power: data.power || '—',
       accuracy: data.accuracy || '—',
@@ -304,19 +399,29 @@
   }
 
   function typeName(type) { return window.getTypeName ? window.getTypeName(type) : type; }
-  function setAnnouncer(text) { const el = q('battle-announcer'); if (el) el.textContent = text || 'La batalla va a comenzar.'; }
-  function updateStatus(message) { const el = q('battle-status-msg'); if (el) el.textContent = message; }
+  function setAnnouncer(text) {
+    const el = q('battle-announcer');
+    if (el) el.textContent = text || (window.LANG === 'en' ? 'The battle is about to begin.' : 'La batalla va a comenzar.');
+  }
+  function updateStatus(message) {
+    const el = q('battle-status-msg');
+    if (el) {
+      el.textContent = message;
+      el.dataset.live = 'true';
+    }
+  }
   function updateMoveArea(html) { const el = q('battle-move-area'); if (el) el.innerHTML = html; }
-  function updateTurn(turn) { const el = q('battle-turn'); if (el) el.textContent = `Turno ${turn}`; }
+  function updateTurn(turn) { const el = q('battle-turn'); if (el) el.textContent = `${window.LANG === 'en' ? 'Turn' : 'Turno'} ${turn}`; }
 
   function addLog(html) {
     const log = q('battle-log');
     if (!log) return;
+    const nearBottom = (log.scrollHeight - log.scrollTop - log.clientHeight) < 18;
     const entry = document.createElement('div');
     entry.className = 'battle-log-entry';
     entry.innerHTML = html;
     log.appendChild(entry);
-    log.scrollTop = log.scrollHeight;
+    if (nearBottom || BC.logPinnedToBottom) log.scrollTop = log.scrollHeight;
     setAnnouncer(htmlToPlainText(html));
   }
 
@@ -373,6 +478,16 @@
   function createBattleMon(pokemon, index) {
     const condition = parseCondition(pokemon?.condition);
     const name = speciesName(pokemon?.ident || pokemon?.details || `Slot ${index + 1}`);
+    const knownSpecies = pokemonData(name);
+    const knownMoves = (pokemon?.moves || []).map((move) => {
+      const id = normalizeText(move);
+      return {
+        id,
+        name: move,
+        used: 0,
+        maxpp: maxPpForMove(id),
+      };
+    });
     return {
       index,
       name,
@@ -386,9 +501,13 @@
       condition: pokemon?.condition || '',
       ability: pokemon?.ability || pokemon?.baseAbility || '',
       baseAbility: pokemon?.baseAbility || pokemon?.ability || '',
+      item: pokemon?.item || '',
       stats: pokemon?.stats || null,
       types: pokemonTypes(name),
       boosts: {},
+      possibleAbilities: possibleAbilitiesFor(name),
+      revealedMoves: Object.fromEntries(knownMoves.map((move) => [move.id, move])),
+      baseStats: knownSpecies?.baseStats || null,
     };
   }
 
@@ -428,9 +547,13 @@
       condition: conditionText || '',
       ability: knownPokemon.ability || knownPokemon.baseAbility || '',
       baseAbility: knownPokemon.baseAbility || knownPokemon.ability || '',
+      item: knownPokemon.item || '',
       stats: knownPokemon.stats || null,
       types: knownPokemon.types || pokemonTypes(name),
       boosts: {},
+      possibleAbilities: knownPokemon.possibleAbilities || possibleAbilitiesFor(name),
+      revealedMoves: knownPokemon.revealedMoves || {},
+      baseStats: knownPokemon.baseStats || pokemonData(name)?.baseStats || null,
     };
     renderField();
     animateSprite(simSide, 'battle-switch-in');
@@ -470,7 +593,7 @@
       p1: { name: 'Jugador 1', active: [], team: [] },
       p2: { name: 'Jugador 2', active: [], team: [] },
     };
-    setAnnouncer('La batalla va a comenzar.');
+    setAnnouncer(window.LANG === 'en' ? 'The battle is about to begin.' : 'La batalla va a comenzar.');
     renderBattleSideTool();
   }
 
@@ -496,7 +619,7 @@
     const percent = activeState.maxhp ? Math.max(0, Math.round(((activeState.hp || 0) / activeState.maxhp) * 100)) : 0;
     if (nameEl) {
       nameEl.innerHTML = `
-        <span class="battle-name-line">${activeState.name}</span>
+        <span class="battle-name-line">${esc(activeState.name)}</span>
         <span class="battle-type-line">${renderTypeBadges(activeState.types || pokemonTypes(activeState.name))}</span>
       `;
     }
@@ -534,40 +657,81 @@
       wrap.appendChild(tooltip);
     }
 
-    if (!ownPokemon || !activeState) {
+    if (!activeState) {
       tooltip.innerHTML = '';
       tooltip.style.display = 'none';
       return;
     }
 
-    const ability = abilityInfo(activeState.ability || activeState.baseAbility);
-    const statRows = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map((stat) => {
-      const base = stat === 'hp' ? (activeState.maxhp || activeState.stats?.hp || null) : (activeState.stats?.[stat] || null);
-      const stage = activeState.boosts?.[stat] || 0;
-      const boosted = stat === 'hp' ? base : boostedStatValue(base, stage);
-      const changed = boosted && base && boosted !== base;
-      const stateClass = changed ? (boosted > base ? 'is-up' : 'is-down') : '';
+    tooltip.style.display = 'block';
+    const typesHtml = renderTypeBadges(activeState.types || pokemonTypes(activeState.name));
+
+    if (ownPokemon) {
+      const ability = abilityInfo(activeState.ability || activeState.baseAbility);
+      const currentTeamSlot = BC.myTeam?.[activeState.index] || {};
+      const ownStats = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map((stat) => {
+        const rawBase = activeState.baseStats?.[stat] || 0;
+        const ev = currentTeamSlot.evs?.[stat] || 0;
+        const iv = currentTeamSlot.ivs?.[stat] ?? 31;
+        const exact = activeState.stats?.[stat] || exactBattleStat(rawBase, stat, ev, iv, currentTeamSlot.nature || 'Hardy');
+        const current = stat === 'hp' ? `${activeState.hp ?? exact} / ${activeState.maxhp ?? exact}` : `${exact ?? '—'}`;
+        const stage = activeState.boosts?.[stat] || 0;
+        const boosted = stat === 'hp' ? null : boostedStatValue(exact, stage);
+        const changed = boosted && exact && boosted !== exact;
+        return `
+          <div class="battle-hover-stat ${changed ? (boosted > exact ? 'is-up' : 'is-down') : ''}">
+            <span>${statLongName(stat)}</span>
+            <span>${current}</span>
+            ${changed ? `<strong>${boosted}</strong>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      tooltip.innerHTML = `
+        <div class="battle-hover-title">${esc(activeState.name)}</div>
+        <div class="battle-hover-types">${typesHtml}</div>
+        <div class="battle-hover-ability">${esc(ability.name)}</div>
+        ${ability.desc ? `<div class="battle-hover-desc">${esc(ability.desc)}</div>` : ''}
+        ${(activeState.item || currentTeamSlot.item) ? `<div class="battle-hover-line"><span>${window.LANG === 'en' ? 'Item' : 'Objeto'}</span><strong>${esc(activeState.item || currentTeamSlot.item)}</strong></div>` : ''}
+        <div class="battle-hover-stats">${ownStats}</div>
+      `;
+      return;
+    }
+
+    const possibleAbilities = (activeState.possibleAbilities || []).map((entry) => abilityInfo(entry).name).join(' · ');
+    const revealedMoves = Object.values(activeState.revealedMoves || {}).map((move) => {
+      const shownName = moveName({ id: move.id, move: move.name || move.id });
+      const remaining = move.maxpp ? Math.max(0, move.maxpp - (move.used || 0)) : '—';
+      return `<div class="battle-hover-line"><span>${esc(shownName)}</span><strong>${remaining}/${move.maxpp || '—'} PP</strong></div>`;
+    }).join('') || `<div class="battle-hover-line"><span>${window.LANG === 'en' ? 'Moves used' : 'Ataques usados'}</span><strong>${window.LANG === 'en' ? 'None yet' : 'Ninguno aún'}</strong></div>`;
+
+    const rangeRows = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map((stat) => {
+      const range = statRange(activeState.baseStats?.[stat], stat);
       return `
-        <div class="battle-hover-stat ${stateClass}">
+        <div class="battle-hover-stat">
           <span>${statLongName(stat)}</span>
-          <span>${stat === 'hp' ? `${activeState.hp ?? base} / ${base ?? '—'}` : (base ?? '—')}</span>
-          ${changed ? `<strong>${boosted}</strong>` : ''}
+          <span>${range.min ?? '—'} - ${range.max ?? '—'}</span>
+          <strong>${window.LANG === 'en' ? 'range' : 'rango'}</strong>
         </div>
       `;
     }).join('');
 
-    tooltip.style.display = 'block';
     tooltip.innerHTML = `
-      <div class="battle-hover-title">${activeState.name}</div>
-      <div class="battle-hover-types">${renderTypeBadges(activeState.types || pokemonTypes(activeState.name))}</div>
-      <div class="battle-hover-ability">${ability.name}</div>
-      ${ability.desc ? `<div class="battle-hover-desc">${ability.desc}</div>` : ''}
-      <div class="battle-hover-stats">${statRows}</div>
+      <div class="battle-hover-title">${esc(activeState.name)}</div>
+      <div class="battle-hover-types">${typesHtml}</div>
+      <div class="battle-hover-section-title">${window.LANG === 'en' ? 'Possible abilities' : 'Posibles habilidades'}</div>
+      <div class="battle-hover-desc">${esc(possibleAbilities || (window.LANG === 'en' ? 'Unknown' : 'Desconocidas'))}</div>
+      <div class="battle-hover-section-title">${window.LANG === 'en' ? 'Revealed item' : 'Objeto revelado'}</div>
+      <div class="battle-hover-desc">${esc(activeState.item || (window.LANG === 'en' ? 'Not revealed yet' : 'Aún no revelado'))}</div>
+      <div class="battle-hover-section-title">${window.LANG === 'en' ? 'Moves used' : 'Ataques usados'}</div>
+      <div class="battle-hover-stack">${revealedMoves}</div>
+      <div class="battle-hover-section-title">${window.LANG === 'en' ? 'Stat ranges at level 100' : 'Rangos de stats al nivel 100'}</div>
+      <div class="battle-hover-stats">${rangeRows}</div>
     `;
   }
 
   function renderMiniCard(simSide, activeState, index, ownPokemon) {
-    if (!activeState) return '<div class="battle-mini-card battle-mini-card-empty">Sin Pokémon</div>';
+    if (!activeState) return `<div class="battle-mini-card battle-mini-card-empty">${window.LANG === 'en' ? 'No Pokemon' : 'Sin Pokémon'}</div>`;
 
     const percent = activeState.maxhp ? Math.max(0, Math.round(((activeState.hp || 0) / activeState.maxhp) * 100)) : 0;
     const num = spriteNumber(activeState.name, ownPokemon ? activeState.index : null);
@@ -602,8 +766,8 @@
     const own = BC.sim[ownSlot()];
     const foe = BC.sim[foeSlot()];
 
-    if (q('battle-p1-name')) q('battle-p1-name').textContent = own.name || 'Tú';
-    if (q('battle-p2-name')) q('battle-p2-name').textContent = foe.name || 'Rival';
+    if (q('battle-p1-name')) q('battle-p1-name').textContent = own.name || (window.LANG === 'en' ? 'You' : 'Tú');
+    if (q('battle-p2-name')) q('battle-p2-name').textContent = foe.name || (window.LANG === 'en' ? 'Opponent' : 'Rival');
 
     renderMainPokemon('p1', own.active[0] || own.team.find((pokemon) => pokemon.active) || own.team[0] || null, true);
     renderMainPokemon('p2', foe.active[0] || foe.team.find((pokemon) => pokemon.active) || null, false);
@@ -645,8 +809,10 @@
   }
 
   function compactResultNames(result) {
-    const bilingual = window.getBilingualNames ? window.getBilingualNames(result) : { es: result.name_es || result.name || result.id, en: result.name || result.id };
-    return bilingual.en && bilingual.en !== bilingual.es ? `${bilingual.es} / ${bilingual.en}` : bilingual.es;
+    const names = window.getOrderedNames
+      ? window.getOrderedNames(result)
+      : { primary: result.name_es || result.name || result.id, secondary: result.name || '' };
+    return names.secondary && names.secondary !== names.primary ? `${names.primary} / ${names.secondary}` : names.primary;
   }
 
   async function runCompactGlossarySearch() {
@@ -658,7 +824,7 @@
     const tab = BC.compactToolTab || 'pokemon';
     if (query.length < 2) {
       const results = panel.querySelector('.battle-tool-results');
-      if (results) results.innerHTML = '<div class="battle-tool-result"><div class="battle-tool-result-sub">Escribe al menos 2 letras.</div></div>';
+        if (results) results.innerHTML = `<div class="battle-tool-result"><div class="battle-tool-result-sub">${window.t ? window.t('glossary.searchHint') : 'Escribe al menos 2 letras.'}</div></div>`;
       return;
     }
 
@@ -671,14 +837,14 @@
     if (!resultsBox) return;
 
     if (!results.length) {
-      resultsBox.innerHTML = '<div class="battle-tool-result"><div class="battle-tool-result-sub">Sin resultados.</div></div>';
+        resultsBox.innerHTML = `<div class="battle-tool-result"><div class="battle-tool-result-sub">${window.t ? window.t('glossary.noResults') : 'Sin resultados.'}</div></div>`;
       return;
     }
 
     resultsBox.innerHTML = results.map((result) => {
       if (tab === 'pokemon') {
         const types = [result.type1, result.type2].filter(Boolean).map((type) => typeName(type)).join(' · ');
-        return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${types || 'Pokémon competitivo'}</div></button>`;
+        return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${types || (window.LANG === 'en' ? 'Competitive Pokemon' : 'Pokémon competitivo')}</div></button>`;
       }
       if (tab === 'moves') {
         return `<button class="battle-tool-result" data-battle-tool-id="${result.id}"><div class="battle-tool-result-name">${compactResultNames(result)}</div><div class="battle-tool-result-sub">${typeName(result.type)} · ${result.category} · Pot ${result.power || '—'}</div></button>`;
@@ -695,7 +861,7 @@
           ? `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${[detail.type1, detail.type2].filter(Boolean).map((type) => typeName(type)).join(' · ')}</div><div class="battle-tool-result-sub">HP ${detail.hp || '—'} · Atk ${detail.atk || '—'} · Def ${detail.def || '—'} · SpA ${detail.spa || '—'} · SpD ${detail.spd || '—'} · Vel ${detail.spe || '—'}</div></div>`
           : tab === 'moves'
             ? `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${typeName(detail.type)} · ${detail.category} · Pot ${detail.power || '—'} · Prec ${detail.accuracy || '—'} · PP ${detail.pp || '—'}</div></div>`
-            : `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${detail.description || 'Sin descripción'}</div></div>`;
+            : `<div class="battle-tool-result"><div class="battle-tool-result-name">${compactResultNames(detail)}</div><div class="battle-tool-result-sub">${detail.description || (window.LANG === 'en' ? 'No description' : 'Sin descripción')}</div></div>`;
         resultsBox.innerHTML = resultsHtml;
       });
     });
@@ -707,15 +873,15 @@
 
     panel.innerHTML = `
       <div class="battle-tool-tabs">
-        <button class="battle-tool-tab ${BC.compactToolTab === 'pokemon' ? 'is-active' : ''}" data-battle-tool-tab="pokemon">Pokémon</button>
-        <button class="battle-tool-tab ${BC.compactToolTab === 'moves' ? 'is-active' : ''}" data-battle-tool-tab="moves">Movs</button>
-        <button class="battle-tool-tab ${BC.compactToolTab === 'abilities' ? 'is-active' : ''}" data-battle-tool-tab="abilities">Hab.</button>
-      </div>
-      <input id="battle-tool-search" class="battle-tool-search" type="text" placeholder="Buscar..." />
-      <div class="battle-tool-results">
-        <div class="battle-tool-result"><div class="battle-tool-result-sub">Escribe al menos 2 letras.</div></div>
-      </div>
-    `;
+          <button class="battle-tool-tab ${BC.compactToolTab === 'pokemon' ? 'is-active' : ''}" data-battle-tool-tab="pokemon">${window.LANG === 'en' ? 'Pokemon' : 'Pokémon'}</button>
+          <button class="battle-tool-tab ${BC.compactToolTab === 'moves' ? 'is-active' : ''}" data-battle-tool-tab="moves">${window.LANG === 'en' ? 'Moves' : 'Movs'}</button>
+          <button class="battle-tool-tab ${BC.compactToolTab === 'abilities' ? 'is-active' : ''}" data-battle-tool-tab="abilities">${window.LANG === 'en' ? 'Abilities' : 'Hab.'}</button>
+        </div>
+        <input id="battle-tool-search" class="battle-tool-search" type="text" placeholder="${window.t ? window.t('common.search') : 'Buscar'}..." />
+        <div class="battle-tool-results">
+          <div class="battle-tool-result"><div class="battle-tool-result-sub">${window.t ? window.t('glossary.searchHint') : 'Escribe al menos 2 letras.'}</div></div>
+        </div>
+      `;
 
     panel.querySelectorAll('[data-battle-tool-tab]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -770,9 +936,9 @@
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     BC.ws = new WebSocket(`${protocol}//${location.host}`);
 
-    BC.ws.onopen = () => updateStatus('Conectado al servidor. Listo para combatir.');
-    BC.ws.onclose = () => updateStatus('Desconectado. Recarga la página para reconectar.');
-    BC.ws.onerror = () => updateStatus('Error de conexión. Comprueba el backend.');
+    BC.ws.onopen = () => updateStatus(window.LANG === 'en' ? 'Connected to the server. Ready to battle.' : 'Conectado al servidor. Listo para combatir.');
+    BC.ws.onclose = () => updateStatus(window.LANG === 'en' ? 'Disconnected. Reload the page to reconnect.' : 'Desconectado. Recarga la página para reconectar.');
+    BC.ws.onerror = () => updateStatus(window.LANG === 'en' ? 'Connection error. Check the backend.' : 'Error de conexión. Comprueba el backend.');
     BC.ws.onmessage = (event) => {
       try {
         handleMessage(JSON.parse(event.data));
@@ -785,23 +951,23 @@
   function handleMessage(msg) {
     switch (msg.type) {
       case 'waiting':
-        updateStatus(msg.message || 'Buscando rival...');
-        setAnnouncer(msg.message || 'Buscando rival...');
+        updateStatus(window.LANG === 'en' ? 'Looking for an opponent...' : 'Buscando rival...');
+        setAnnouncer(window.LANG === 'en' ? 'Looking for an opponent...' : 'Buscando rival...');
         break;
       case 'match_found':
         BC.roomId = msg.roomId;
         BC.slot = msg.slot;
         BC.waiting = false;
         showArena();
-        updateStatus(`Rival encontrado: ${msg.opponent}.`);
-        setAnnouncer(`Te enfrentas a ${msg.opponent}.`);
+        updateStatus(`${window.LANG === 'en' ? 'Opponent found' : 'Rival encontrado'}: ${msg.opponent}.`);
+        setAnnouncer(`${window.LANG === 'en' ? 'You face' : 'Te enfrentas a'} ${msg.opponent}.`);
         renderField();
         break;
       case 'room_created':
         BC.roomId = msg.roomId;
         BC.slot = msg.slot || 'p1';
-        updateStatus(`Sala creada: ${msg.roomId}. Esperando rival...`);
-        setAnnouncer(`Sala ${msg.roomId} creada.`);
+        updateStatus(`${window.LANG === 'en' ? 'Room created' : 'Sala creada'}: ${msg.roomId}. ${window.LANG === 'en' ? 'Waiting for opponent...' : 'Esperando rival...'}`);
+        setAnnouncer(`${window.LANG === 'en' ? 'Room' : 'Sala'} ${msg.roomId} ${window.LANG === 'en' ? 'created.' : 'creada.'}`);
         if (q('battle-room-id')) {
           q('battle-room-id').textContent = msg.roomId;
           q('battle-room-id').style.display = 'block';
@@ -809,20 +975,20 @@
         break;
       case 'connected':
         BC.slot = msg.slot;
-        updateStatus(`Conectado como ${msg.slot}. Esperando al otro jugador...`);
-        setAnnouncer(`Conectado como ${msg.slot}.`);
+        updateStatus(`${window.LANG === 'en' ? 'Connected as' : 'Conectado como'} ${msg.slot}. ${window.LANG === 'en' ? 'Waiting for the other player...' : 'Esperando al otro jugador...'}`);
+        setAnnouncer(`${window.LANG === 'en' ? 'Connected as' : 'Conectado como'} ${msg.slot}.`);
         renderField();
         break;
       case 'room_update':
         if (msg.roomId === BC.roomId) {
           const readyPlayers = Object.values(msg.ready || {}).filter(Boolean).length;
-          updateStatus(`Sala ${msg.roomId}: ${readyPlayers}/2 jugadores listos.`);
+          updateStatus(`${window.LANG === 'en' ? 'Room' : 'Sala'} ${msg.roomId}: ${readyPlayers}/2 ${window.LANG === 'en' ? 'players ready' : 'jugadores listos'}.`);
         }
         break;
       case 'battle_start':
         showArena();
-        addLog('La batalla ha comenzado.');
-        updateMoveArea('<div class="battle-waiting">Esperando primer request...</div>');
+        addLog(window.LANG === 'en' ? 'The battle has started.' : 'La batalla ha comenzado.');
+        updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Waiting for the first request...' : 'Esperando primer request...'}</div>`);
         break;
       case 'protocol':
         queueProtocolLine(msg.line);
@@ -834,25 +1000,38 @@
         break;
       case 'request_opponent':
         BC.waiting = true;
-        setAnnouncer('Esperando la decisión del rival.');
-        updateMoveArea('<div class="battle-waiting">Esperando al rival...</div>');
+        setAnnouncer(window.LANG === 'en' ? 'Waiting for the opponent decision.' : 'Esperando la decisión del rival.');
+        updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Waiting for the opponent...' : 'Esperando al rival...'}</div>`);
         break;
       case 'win':
-        addLog(`<strong>${msg.winner} ha ganado la batalla.</strong>`);
-        updateMoveArea(`<div class="battle-end">${msg.winner} gana.</div>`);
+        addLog(`<strong>${esc(msg.winner)} ${window.LANG === 'en' ? 'won the battle.' : 'ha ganado la batalla.'}</strong>`);
+        updateMoveArea(`<div class="battle-end">${window.LANG === 'en' ? `${esc(msg.winner)} wins.` : `${esc(msg.winner)} gana.`}</div>`);
         break;
       case 'tie':
-        addLog('<strong>Empate.</strong>');
-        updateMoveArea('<div class="battle-end">Empate.</div>');
+        addLog(`<strong>${window.LANG === 'en' ? 'Tie.' : 'Empate.'}</strong>`);
+        updateMoveArea(`<div class="battle-end">${window.LANG === 'en' ? 'Tie.' : 'Empate.'}</div>`);
         break;
       case 'opponent_left':
-        addLog('El rival se ha desconectado.');
-        updateMoveArea('<div class="battle-end">El rival ha salido.</div>');
+        addLog(window.LANG === 'en' ? 'The opponent disconnected.' : 'El rival se ha desconectado.');
+        updateMoveArea(`<div class="battle-end">${window.LANG === 'en' ? 'The opponent left.' : 'El rival ha salido.'}</div>`);
         break;
       case 'error':
-        addLog(`Error: ${msg.message}`);
-        updateStatus(msg.message || 'Ha ocurrido un error.');
-        if ((msg.message || '').includes('Equipo ') && !BC.myRequest) showIntro();
+        {
+          const translatedMessage = msg.code === 'room_not_found'
+            ? (window.LANG === 'en' ? 'Room not found.' : 'Sala no encontrada.')
+            : msg.code === 'practice_team_fallback'
+              ? (window.LANG === 'en' ? 'Your team was not legal for this format. A valid practice team was loaded automatically.' : 'Tu equipo no era legal para este formato. Se ha cargado automaticamente un equipo de practica valido.')
+              : msg.code === 'team_invalid'
+                ? (window.LANG === 'en' ? 'One of the teams is not valid for this format.' : 'Uno de los equipos no es valido para este formato.')
+                : msg.code === 'bad_socket_message'
+                  ? (window.LANG === 'en' ? 'Invalid socket message.' : 'Mensaje de socket invalido.')
+                  : msg.code === 'invalid_request'
+                    ? (window.LANG === 'en' ? 'Invalid simulator request.' : 'Request del simulador invalida.')
+                    : msg.message || (window.LANG === 'en' ? 'An error occurred.' : 'Ha ocurrido un error.');
+          addLog(`Error: ${translatedMessage}`);
+          updateStatus(translatedMessage);
+          if (msg.code === 'team_invalid' && !BC.myRequest) showIntro();
+        }
         break;
     }
   }
@@ -875,21 +1054,32 @@
         const ident = parts[2] || '';
         const simSide = ident.slice(0, 2);
         setActivePokemon(simSide, ident, parts[3], parts[4]);
-        addLog(`${BC.sim[simSide]?.name || simSide} saca a ${speciesName(parts[3])}.`);
+        addLog(window.LANG === 'en'
+          ? `${BC.sim[simSide]?.name || simSide} sent out ${speciesName(parts[3])}.`
+          : `${BC.sim[simSide]?.name || simSide} saca a ${speciesName(parts[3])}.`);
         break;
       }
       case 'move':
+        {
+        const simSide = (parts[2] || '').slice(0, 2);
+        const activeState = getActiveState(simSide, parts[2]);
+        const moveId = normalizeText(parts[3]);
+        const tracker = ensureMoveTracker(activeState, moveId, parts[3]);
+        if (tracker) tracker.used = (tracker.used || 0) + 1;
         playAttackAnimation((parts[2] || '').slice(0, 2));
-        addLog(`${speciesName(parts[2])} usa <strong>${moveName({ id: normalizeText(parts[3]), move: parts[3] })}</strong>.`);
+        addLog(window.LANG === 'en'
+          ? `${speciesName(parts[2])} used <strong>${moveName({ id: normalizeText(parts[3]), move: parts[3] })}</strong>.`
+          : `${speciesName(parts[2])} usa <strong>${moveName({ id: normalizeText(parts[3]), move: parts[3] })}</strong>.`);
         break;
+        }
       case '-damage':
         updateActivePokemon((parts[2] || '').slice(0, 2), parts[2], parts[3]);
-        addLog(`${speciesName(parts[2])} pierde vida.`);
+        addLog(window.LANG === 'en' ? `${speciesName(parts[2])} lost HP.` : `${speciesName(parts[2])} pierde vida.`);
         flashDamage((parts[2] || '').slice(0, 2));
         break;
       case '-heal':
         updateActivePokemon((parts[2] || '').slice(0, 2), parts[2], parts[3]);
-        addLog(`${speciesName(parts[2])} recupera vida.`);
+        addLog(window.LANG === 'en' ? `${speciesName(parts[2])} recovered HP.` : `${speciesName(parts[2])} recupera vida.`);
         break;
       case '-status': {
         const simSide = (parts[2] || '').slice(0, 2);
@@ -898,7 +1088,7 @@
           activeState.status = parts[3];
           renderField();
         }
-        addLog(`${speciesName(parts[2])} queda ${statusName(parts[3])}.`);
+        addLog(window.LANG === 'en' ? `${speciesName(parts[2])} is now ${statusName(parts[3])}.` : `${speciesName(parts[2])} queda ${statusName(parts[3])}.`);
         break;
       }
       case '-curestatus': {
@@ -908,24 +1098,24 @@
           activeState.status = '';
           renderField();
         }
-        addLog(`${speciesName(parts[2])} se cura de ${statusName(parts[3])}.`);
+        addLog(window.LANG === 'en' ? `${speciesName(parts[2])} was cured of ${statusName(parts[3])}.` : `${speciesName(parts[2])} se cura de ${statusName(parts[3])}.`);
         break;
       }
       case 'faint':
         updateActivePokemon((parts[2] || '').slice(0, 2), parts[2], '0 fnt');
-        addLog(`${speciesName(parts[2])} se ha debilitado.`);
+        addLog(window.LANG === 'en' ? `${speciesName(parts[2])} fainted.` : `${speciesName(parts[2])} se ha debilitado.`);
         break;
       case '-supereffective':
-        addLog('<em>Es muy efectivo.</em>');
+        addLog(`<em>${window.LANG === 'en' ? 'It is super effective.' : 'Es muy efectivo.'}</em>`);
         break;
       case '-resisted':
-        addLog('<em>No es muy efectivo.</em>');
+        addLog(`<em>${window.LANG === 'en' ? 'It is not very effective.' : 'No es muy efectivo.'}</em>`);
         break;
       case '-immune':
-        addLog('<em>No afecta al objetivo.</em>');
+        addLog(`<em>${window.LANG === 'en' ? 'It does not affect the target.' : 'No afecta al objetivo.'}</em>`);
         break;
       case '-miss':
-        addLog('<em>El ataque falló.</em>');
+        addLog(`<em>${window.LANG === 'en' ? 'The attack missed.' : 'El ataque falló.'}</em>`);
         break;
       case '-boost':
         updateBoost((parts[2] || '').slice(0, 2), parts[2], parts[3], Number(parts[4]) || 1);
@@ -942,18 +1132,45 @@
       case '-weather':
         addLog(`Clima: ${parts[2]}.`);
         break;
+      case '-item': {
+        const simSide = (parts[2] || '').slice(0, 2);
+        const activeState = getActiveState(simSide, parts[2]);
+        if (activeState) activeState.item = parts[3] || activeState.item;
+        renderField();
+        addLog(`${speciesName(parts[2])} muestra ${parts[3]}.`);
+        break;
+      }
+      case '-enditem': {
+        const simSide = (parts[2] || '').slice(0, 2);
+        const activeState = getActiveState(simSide, parts[2]);
+        if (activeState) activeState.item = parts[3] || activeState.item;
+        renderField();
+        addLog(`${speciesName(parts[2])} pierde ${parts[3]}.`);
+        break;
+      }
+      case '-ability': {
+        const simSide = (parts[2] || '').slice(0, 2);
+        const activeState = getActiveState(simSide, parts[2]);
+        if (activeState) {
+          activeState.ability = parts[3] || activeState.ability;
+          activeState.baseAbility = parts[3] || activeState.baseAbility;
+        }
+        renderField();
+        addLog(`${speciesName(parts[2])} revela ${parts[3]}.`);
+        break;
+      }
       case '-sidestart':
         addLog(`${parts[3]} aparece en el lado de ${parts[2]}.`);
         break;
       case 'turn':
         updateTurn(Number(parts[2]) || 1);
-        addLog(`<strong>Turno ${parts[2]}</strong>`);
+        addLog(`<strong>${window.LANG === 'en' ? 'Turn' : 'Turno'} ${parts[2]}</strong>`);
         break;
       case 'teampreview':
         addLog('Team preview.');
         break;
       case 'win':
-        addLog(`<strong>${parts[2]} ha ganado.</strong>`);
+        addLog(`<strong>${window.LANG === 'en' ? `${parts[2]} won.` : `${parts[2]} ha ganado.`}</strong>`);
         break;
     }
   }
@@ -973,15 +1190,15 @@
     if (q('battle-log')) q('battle-log').innerHTML = '';
     updateTurn(1);
     renderField();
-    updateMoveArea('<div class="battle-waiting">Esperando inicio de batalla...</div>');
+    updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Waiting for battle start...' : 'Esperando inicio de batalla...'}</div>`);
   }
 
   function sendChoice(choice) {
     if (!BC.ws || BC.ws.readyState !== 1 || !choice) return;
     BC.waiting = true;
     BC.ws.send(JSON.stringify({ type: 'choice', choice }));
-    setAnnouncer('Decisión enviada.');
-    updateMoveArea('<div class="battle-waiting">Elección enviada. Esperando al rival...</div>');
+    setAnnouncer(window.LANG === 'en' ? 'Decision sent.' : 'Decisión enviada.');
+    updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Choice sent. Waiting for the opponent...' : 'Elección enviada. Esperando al rival...'}</div>`);
   }
 
   function trySendPendingTurn() {
@@ -998,13 +1215,13 @@
 
   function renderRequest(request) {
     if (!request) {
-      updateMoveArea('<div class="battle-waiting">Sin request activo.</div>');
+      updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'No active request.' : 'Sin request activo.'}</div>`);
       return;
     }
     if (request.wait) {
       BC.waiting = true;
-      setAnnouncer('Esperando la decisión del rival.');
-      updateMoveArea('<div class="battle-waiting">Esperando al rival...</div>');
+      setAnnouncer(window.LANG === 'en' ? 'Waiting for the opponent decision.' : 'Esperando la decisión del rival.');
+      updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Waiting for the opponent...' : 'Esperando al rival...'}</div>`);
       return;
     }
 
@@ -1024,7 +1241,7 @@
       renderTurn(request);
       return;
     }
-    updateMoveArea('<div class="battle-waiting">Esperando al rival...</div>');
+    updateMoveArea(`<div class="battle-waiting">${window.LANG === 'en' ? 'Waiting for the opponent...' : 'Esperando al rival...'}</div>`);
   }
 
   function renderPreview(request) {
@@ -1032,13 +1249,13 @@
     const need = request.maxChosenTeamSize || team.length;
     const current = BC.pendingPreview;
 
-    setAnnouncer('Elige el orden inicial de tu equipo.');
+    setAnnouncer(window.LANG === 'en' ? 'Choose the opening order of your team.' : 'Elige el orden inicial de tu equipo.');
     updateMoveArea(`
       <div class="battle-request-card">
-        <div class="battle-request-title">Team Preview</div>
-        <div class="battle-request-subtitle">Elige ${need} Pokémon para el orden inicial.</div>
+        <div class="battle-request-title">${window.LANG === 'en' ? 'Team Preview' : 'Vista previa del equipo'}</div>
+        <div class="battle-request-subtitle">${window.LANG === 'en' ? `Choose ${need} Pokemon for the opening order.` : `Elige ${need} Pokémon para el orden inicial.`}</div>
         <div class="battle-pick-order">
-          ${current.length ? current.map((slot, index) => `<span class="battle-pick-chip">${index + 1}. ${speciesName(team[slot]?.ident || team[slot]?.details)}</span>`).join('') : '<span class="battle-waiting">Todavía no has elegido ningún Pokémon.</span>'}
+          ${current.length ? current.map((slot, index) => `<span class="battle-pick-chip">${index + 1}. ${speciesName(team[slot]?.ident || team[slot]?.details)}</span>`).join('') : `<span class="battle-waiting">${window.LANG === 'en' ? 'You have not chosen any Pokemon yet.' : 'Todavía no has elegido ningún Pokémon.'}</span>`}
         </div>
         <div class="battle-switch-grid">
           ${team.map((pokemon, index) => {
@@ -1050,16 +1267,16 @@
                 ${num ? `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${num}.png" alt="${name}" style="width:32px;height:32px;image-rendering:pixelated" />` : ''}
                 <div>
                   <div style="font-size:12px;font-weight:700">${name}</div>
-                  <div style="font-size:11px;color:#5b6474">${picked >= 0 ? `Elegido #${picked + 1}` : (pokemon.details || pokemon.condition || 'Listo')}</div>
+                  <div style="font-size:11px;color:#5b6474">${picked >= 0 ? `${window.LANG === 'en' ? 'Picked' : 'Elegido'} #${picked + 1}` : (pokemon.details || pokemon.condition || (window.LANG === 'en' ? 'Ready' : 'Listo'))}</div>
                 </div>
               </button>
             `;
           }).join('')}
         </div>
         <div class="battle-request-actions">
-          <button class="btn-secondary" id="battle-preview-reset">Reset</button>
-          <button class="btn-secondary" id="battle-preview-default">Orden por defecto</button>
-          <button class="btn-primary" id="battle-preview-send" ${current.length < need ? 'disabled' : ''}>Confirmar</button>
+          <button class="btn-secondary" id="battle-preview-reset">${window.LANG === 'en' ? 'Reset' : 'Reiniciar'}</button>
+          <button class="btn-secondary" id="battle-preview-default">${window.LANG === 'en' ? 'Default order' : 'Orden por defecto'}</button>
+          <button class="btn-primary" id="battle-preview-send" ${current.length < need ? 'disabled' : ''}>${window.LANG === 'en' ? 'Confirm' : 'Confirmar'}</button>
         </div>
       </div>
     `);
@@ -1092,19 +1309,19 @@
     const team = request?.side?.pokemon || [];
     const mustSwitch = request.forceSwitch || [];
 
-    setAnnouncer('Debes elegir un cambio.');
+    setAnnouncer(window.LANG === 'en' ? 'You must choose a switch.' : 'Debes elegir un cambio.');
     updateMoveArea(`
       <div class="battle-request-card">
-        <div class="battle-request-title">Cambio forzado</div>
-        <div class="battle-request-subtitle">Elige relevo para cada hueco obligatorio.</div>
+        <div class="battle-request-title">${window.LANG === 'en' ? 'Forced switch' : 'Cambio forzado'}</div>
+        <div class="battle-request-subtitle">${window.LANG === 'en' ? 'Choose a replacement for each required slot.' : 'Elige relevo para cada hueco obligatorio.'}</div>
         <div class="battle-request-stack">
           ${mustSwitch.map((needed, activeIndex) => {
             if (!needed) {
-              return `<div class="battle-request-slot"><div class="battle-request-slot-title">Hueco ${activeIndex + 1}</div><div class="battle-waiting">No necesita cambio.</div></div>`;
+              return `<div class="battle-request-slot"><div class="battle-request-slot-title">${window.LANG === 'en' ? 'Slot' : 'Hueco'} ${activeIndex + 1}</div><div class="battle-waiting">${window.LANG === 'en' ? 'No switch needed.' : 'No necesita cambio.'}</div></div>`;
             }
             return `
               <div class="battle-request-slot">
-                <div class="battle-request-slot-title">Hueco ${activeIndex + 1}</div>
+                <div class="battle-request-slot-title">${window.LANG === 'en' ? 'Slot' : 'Hueco'} ${activeIndex + 1}</div>
                 <div class="battle-switch-grid">
                   ${team.map((pokemon, index) => {
                     const condition = parseCondition(pokemon.condition);
@@ -1117,7 +1334,7 @@
                         ${num ? `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${num}.png" alt="${name}" style="width:32px;height:32px;image-rendering:pixelated" />` : ''}
                         <div>
                           <div style="font-size:12px;font-weight:700">${name}</div>
-                          <div style="font-size:11px;color:${disabled ? '#c94a4a' : '#5b6474'}">${disabled ? 'No disponible' : pokemon.condition}</div>
+                          <div style="font-size:11px;color:${disabled ? '#c94a4a' : '#5b6474'}">${disabled ? (window.LANG === 'en' ? 'Unavailable' : 'No disponible') : pokemon.condition}</div>
                         </div>
                       </button>
                     `;
@@ -1165,11 +1382,11 @@
   }
 
   function renderTurn(request) {
-    setAnnouncer('Tu turno. Elige movimiento o cambio.');
+    setAnnouncer(window.LANG === 'en' ? 'Your turn. Choose a move or a switch.' : 'Tu turno. Elige movimiento o cambio.');
     updateMoveArea(`
       <div class="battle-request-card">
-        <div class="battle-request-title">Tu turno</div>
-        <div class="battle-request-subtitle">Elige acción para cada Pokémon activo.</div>
+        <div class="battle-request-title">${window.LANG === 'en' ? 'Your turn' : 'Tu turno'}</div>
+        <div class="battle-request-subtitle">${window.LANG === 'en' ? 'Choose an action for each active Pokemon.' : 'Elige acción para cada Pokémon activo.'}</div>
         <div class="battle-request-stack">${request.active.map((active, index) => renderTurnSlot(request, active, index)).join('')}</div>
       </div>
     `);
@@ -1203,7 +1420,7 @@
 
     if (!active || self?.condition?.endsWith(' fnt') || self?.commanding) {
       BC.pendingTurn[activeIndex] = 'pass';
-      return `<div class="battle-request-slot"><div class="battle-request-slot-title">${selfName}</div><div class="battle-waiting">Este hueco no requiere acción.</div></div>`;
+      return `<div class="battle-request-slot"><div class="battle-request-slot-title">${selfName}</div><div class="battle-waiting">${window.LANG === 'en' ? 'This slot does not require an action.' : 'Este hueco no requiere acción.'}</div></div>`;
     }
 
     const movesHtml = (active.moves || []).map((move, moveIndex) => {
@@ -1232,8 +1449,8 @@
               </div>
               <div class="battle-move-hover-desc">${info.description}</div>
               <div class="battle-move-hover-meta">
-                <span class="battle-move-hover-tag">Potencia ${info.power}</span>
-                <span class="battle-move-hover-tag">Precisión ${info.accuracy}</span>
+                <span class="battle-move-hover-tag">${window.LANG === 'en' ? 'Power' : 'Potencia'} ${info.power}</span>
+                <span class="battle-move-hover-tag">${window.LANG === 'en' ? 'Accuracy' : 'Precisión'} ${info.accuracy}</span>
                 <span class="battle-move-hover-tag battle-move-hover-tag-type" style="background:${TYPE_COLORS[info.type] || '#8b95a7'}">${typeName(info.type)}</span>
                 <span class="battle-move-hover-tag">${info.categoryIcon ? `<img src="${info.categoryIcon}" alt="" style="height:14px" />` : ''}${info.categoryLabel}</span>
               </div>
@@ -1244,7 +1461,7 @@
     }).join('');
 
     const switchesHtml = active.trapped
-      ? '<div class="battle-waiting">No puede cambiar.</div>'
+      ? `<div class="battle-waiting">${window.LANG === 'en' ? 'Cannot switch.' : 'No puede cambiar.'}</div>`
       : side.map((pokemon, index) => {
           const condition = parseCondition(pokemon.condition);
           const disabled = pokemon.active || condition.fainted;
@@ -1256,7 +1473,7 @@
               ${num ? `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${num}.png" alt="${name}" style="width:32px;height:32px;image-rendering:pixelated" />` : ''}
               <div>
                 <div style="font-size:12px;font-weight:700">${name}</div>
-                <div style="font-size:11px;color:${disabled ? '#c94a4a' : '#5b6474'}">${disabled ? 'No disponible' : pokemon.condition}</div>
+                <div style="font-size:11px;color:${disabled ? '#c94a4a' : '#5b6474'}">${disabled ? (window.LANG === 'en' ? 'Unavailable' : 'No disponible') : pokemon.condition}</div>
               </div>
             </button>
           `;
@@ -1265,9 +1482,9 @@
     return `
       <div class="battle-request-slot">
         <div class="battle-request-slot-title">${selfName}</div>
-        <div class="battle-request-section-title">Movimientos</div>
-        <div class="battle-moves-grid">${movesHtml || '<div class="battle-waiting">Sin movimientos disponibles.</div>'}</div>
-        <div class="battle-request-section-title">Cambios</div>
+        <div class="battle-request-section-title">${window.LANG === 'en' ? 'Moves' : 'Movimientos'}</div>
+        <div class="battle-moves-grid">${movesHtml || `<div class="battle-waiting">${window.LANG === 'en' ? 'No moves available.' : 'Sin movimientos disponibles.'}</div>`}</div>
+        <div class="battle-request-section-title">${window.LANG === 'en' ? 'Switches' : 'Cambios'}</div>
         <div class="battle-switch-grid">${switchesHtml}</div>
       </div>
     `;
@@ -1275,7 +1492,7 @@
 
   async function startBattleAction(action) {
     if (!BC.ws || BC.ws.readyState !== 1) {
-      updateStatus('No hay conexión con el servidor.');
+      updateStatus(window.LANG === 'en' ? 'There is no connection to the server.' : 'No hay conexión con el servidor.');
       return;
     }
 
@@ -1298,8 +1515,12 @@
     if (action === 'practice_battle' && teamSpec.botPayload) Object.assign(payload, teamSpec.botPayload);
 
     BC.ws.send(JSON.stringify(payload));
-    updateStatus(action === 'find_battle' ? 'Buscando rival...' : 'Preparando combate...');
-    setAnnouncer(action === 'find_battle' ? 'Buscando rival...' : 'Preparando combate...');
+    updateStatus(action === 'find_battle'
+      ? (window.LANG === 'en' ? 'Looking for an opponent...' : 'Buscando rival...')
+      : (window.LANG === 'en' ? 'Preparing battle...' : 'Preparando combate...'));
+    setAnnouncer(action === 'find_battle'
+      ? (window.LANG === 'en' ? 'Looking for an opponent...' : 'Buscando rival...')
+      : (window.LANG === 'en' ? 'Preparing battle...' : 'Preparando combate...'));
   }
 
   function battleFindMatch() { void startBattleAction('find_battle'); }
@@ -1333,8 +1554,8 @@
       ...teamSpec.payload,
     }));
 
-    updateStatus(`Uniéndote a la sala ${roomId}...`);
-    setAnnouncer(`Uniéndote a la sala ${roomId}.`);
+    updateStatus(window.LANG === 'en' ? `Joining room ${roomId}...` : `Uniéndote a la sala ${roomId}...`);
+    setAnnouncer(window.LANG === 'en' ? `Joining room ${roomId}.` : `Uniéndote a la sala ${roomId}.`);
   }
 
   function buildTeamForBattle() {
@@ -1408,21 +1629,19 @@
     return shuffle(RANDOM_TEAM_POOL).slice(0, size).map((slot) => normalizePoolSlot(cloneTeamSlot(slot)));
   }
 
+  function buildPseudoRandomTeamExcluding(blockedIds = [], size = 6) {
+    const blocked = new Set(blockedIds);
+    const filteredPool = RANDOM_TEAM_POOL.filter((slot) => !blocked.has(slot.id));
+    const usablePool = filteredPool.length >= size ? filteredPool : RANDOM_TEAM_POOL;
+    return shuffle(usablePool).slice(0, size).map((slot) => normalizePoolSlot(cloneTeamSlot(slot)));
+  }
+
   function buildPseudoRandomTeamPair(size = 6) {
-    const pool = shuffle(RANDOM_TEAM_POOL);
-    const first = pool.slice(0, size).map((slot) => normalizePoolSlot(cloneTeamSlot(slot)));
-    const secondBase = pool.slice(size, size * 2);
-
-    if (secondBase.length === size) {
-      return {
-        player: first,
-        bot: secondBase.map((slot) => normalizePoolSlot(cloneTeamSlot(slot))),
-      };
-    }
-
+    const first = buildPseudoRandomTeam(size);
+    const blockedIds = first.map((slot) => slot.id);
     return {
       player: first,
-      bot: buildPseudoRandomTeam(size),
+      bot: buildPseudoRandomTeamExcluding(blockedIds, size),
     };
   }
 
@@ -1435,8 +1654,8 @@
     BC.savedTeams = teams || [];
 
     select.innerHTML = !BC.savedTeams.length
-      ? '<option value="">No hay equipos guardados</option>'
-      : ['<option value="">Elige un equipo guardado</option>', ...BC.savedTeams.map((team) => `<option value="${team.id}">${team.name} · ${team.format}</option>`)].join('');
+      ? `<option value="">${window.LANG === 'en' ? 'No saved teams' : 'No hay equipos guardados'}</option>`
+      : [`<option value="">${window.LANG === 'en' ? 'Choose a saved team' : 'Elige un equipo guardado'}</option>`, ...BC.savedTeams.map((team) => `<option value="${team.id}">${team.name} · ${team.format}</option>`)].join('');
 
     if (currentValue && BC.savedTeams.some((team) => `${team.id}` === `${currentValue}`)) {
       select.value = currentValue;
@@ -1459,12 +1678,12 @@
     if (source === 'saved') {
       const id = q('battle-saved-team')?.value;
       if (!id) {
-        updateStatus('Elige un equipo guardado antes de empezar.');
+        updateStatus(window.LANG === 'en' ? 'Choose a saved team before starting.' : 'Elige un equipo guardado antes de empezar.');
         throw new Error('no team');
       }
       const team = await window.PH_API?.teams.get(id);
       if (!team?.export_code) {
-        updateStatus('No se pudo cargar el equipo guardado.');
+        updateStatus(window.LANG === 'en' ? 'Could not load the saved team.' : 'No se pudo cargar el equipo guardado.');
         throw new Error('bad team');
       }
       const normalizedExport = normalizeSavedTeamText(team.export_code);
@@ -1485,7 +1704,9 @@
 
     if (source === 'random' && !randomFormat) {
       const { player: playerRandomTeam, bot: botRandomTeam } = buildPseudoRandomTeamPair();
-      updateStatus('Para formatos estándar uso dos equipos aleatorios legales de prueba.');
+      updateStatus(window.LANG === 'en'
+        ? 'For standard formats I use two random legal sample teams.'
+        : 'Para formatos estandar uso dos equipos aleatorios legales de prueba.');
       return {
         payload: { team: playerRandomTeam, teamMode: 'builder' },
         previewTeam: playerRandomTeam,
@@ -1523,13 +1744,18 @@
     q('battle-forfeit-btn')?.addEventListener('click', () => {
       if (BC.ws && BC.roomId) {
         setAnnouncer('Te has rendido.');
-        updateStatus('Rindiéndote...');
+        updateStatus(window.LANG === 'en' ? 'Forfeiting...' : 'Rindiéndote...');
         BC.ws.send(JSON.stringify({ type: 'forfeit' }));
       } else {
         showIntro();
         resetArena();
-        updateStatus('Combate cancelado.');
+        updateStatus(window.LANG === 'en' ? 'Battle canceled.' : 'Combate cancelado.');
       }
+    });
+
+    q('battle-log')?.addEventListener('scroll', (event) => {
+      const log = event.currentTarget;
+      BC.logPinnedToBottom = (log.scrollHeight - log.scrollTop - log.clientHeight) < 18;
     });
 
     document.addEventListener('langchange', () => {
@@ -1539,6 +1765,6 @@
     });
 
     updateTeamSourceUI();
-    setAnnouncer('La batalla va a comenzar.');
+    setAnnouncer(window.LANG === 'en' ? 'The battle is about to begin.' : 'La batalla va a comenzar.');
   });
 })();

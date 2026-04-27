@@ -52,7 +52,14 @@ const DC_NATURES = {
   Docile:{},Serious:{},Quirky:{}
 };
 const NATURES_LIST = Object.keys(DC_NATURES).sort();
-const STAT_LABELS  = {hp:'HP',atk:'Ataque',def:'Defensa',spa:'Atk.Esp',spd:'Def.Esp',spe:'Velocidad'};
+const STAT_LABELS  = {
+  hp:'HP',
+  atk: window.LANG === 'en' ? 'Attack' : 'Ataque',
+  def: window.LANG === 'en' ? 'Defense' : 'Defensa',
+  spa:'SpA',
+  spd:'SpD',
+  spe: window.LANG === 'en' ? 'Speed' : 'Velocidad'
+};
 const STAT_KEYS    = ['hp','atk','def','spa','spd','spe'];
 
 const CAT_SPRITE_DC = {
@@ -91,7 +98,7 @@ async function dcSearchPokemon(query, suggEl, side) {
 }
 
 function dcRenderPokesugg(results, suggEl, side, nq) {
-  if (!results.length) { suggEl.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { suggEl.innerHTML = `<div class="ed-sugg-empty">${window.LANG === 'en' ? 'No results' : 'Sin resultados'}</div>`; return; }
   suggEl.innerHTML = results.map(p =>
     `<button class="ed-sugg-btn" data-id="${p.id}">
       <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.num}.png"
@@ -148,7 +155,7 @@ async function dcSearchMove(query, suggEl) {
 }
 
 function dcRenderMoveSugg(results, suggEl, nq) {
-  if (!results.length) { suggEl.innerHTML = '<div class="ed-sugg-empty">Sin resultados</div>'; return; }
+  if (!results.length) { suggEl.innerHTML = `<div class="ed-sugg-empty">${window.LANG === 'en' ? 'No results' : 'Sin resultados'}</div>`; return; }
   suggEl.innerHTML = results.map(m => {
     const tc  = DC_TYPE_COLORS[m.type]||'#888';
     const te  = DC_TYPE_ES[m.type]||m.type;
@@ -251,7 +258,7 @@ function dcRenderMovePreview(m) {
   const tc  = DC_TYPE_COLORS[m.type]||'#888';
   const te  = DC_TYPE_ES[m.type]||m.type;
   const catSrc = CAT_SPRITE_DC[m.category]||'';
-  const cat    = {physical:'Físico',special:'Especial',status:'Estado'}[m.category]||m.category;
+  const cat    = {physical: window.LANG === 'en' ? 'Physical' : 'Físico', special: window.LANG === 'en' ? 'Special' : 'Especial', status: window.LANG === 'en' ? 'Status' : 'Estado'}[m.category]||m.category;
 
   let secText = '';
   if (m.secondary?.chance) {
@@ -262,8 +269,8 @@ function dcRenderMovePreview(m) {
       secText = `${m.secondary.chance}% ${b}`;
     }
   }
-  if (m.drain)  secText = `Drena ${Math.round(m.drain[0]/m.drain[1]*100)}% del daño`;
-  if (m.recoil) secText = `${Math.round(m.recoil[0]/m.recoil[1]*100)}% de retroceso`;
+  if (m.drain)  secText = window.LANG === 'en' ? `Heals ${Math.round(m.drain[0]/m.drain[1]*100)}% of dealt damage` : `Drena ${Math.round(m.drain[0]/m.drain[1]*100)}% del daño`;
+  if (m.recoil) secText = window.LANG === 'en' ? `${Math.round(m.recoil[0]/m.recoil[1]*100)}% recoil` : `${Math.round(m.recoil[0]/m.recoil[1]*100)}% de retroceso`;
 
   el.innerHTML = `
     <div class="calc-move-card">
@@ -273,10 +280,10 @@ function dcRenderMovePreview(m) {
         ${catSrc?`<img src="${catSrc}" style="height:18px" title="${cat}">`:`<span style="font-size:12px">${cat}</span>`}
       </div>
       <div style="display:flex;gap:14px;font-size:12px;color:var(--text-muted);margin-top:6px;flex-wrap:wrap">
-        <span>Potencia: <strong>${m.power||'—'}</strong></span>
-        <span>Precisión: <strong>${m.accuracy||'—'}</strong></span>
+        <span>${window.LANG === 'en' ? 'Power' : 'Potencia'}: <strong>${m.power||'—'}</strong></span>
+        <span>${window.LANG === 'en' ? 'Accuracy' : 'Precisión'}: <strong>${m.accuracy||'—'}</strong></span>
         <span>PP: <strong>${m.pp||'—'}</strong></span>
-        <span>Prioridad: <strong>${(m.priority||0)>=0?'+':''}${m.priority||0}</strong></span>
+        <span>${window.LANG === 'en' ? 'Priority' : 'Prioridad'}: <strong>${(m.priority||0)>=0?'+':''}${m.priority||0}</strong></span>
       </div>
       ${secText?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px">⚡ ${secText}</div>`:''}
     </div>`;
@@ -314,11 +321,11 @@ function dcRunCalc() {
   const mv      = DC.move;
 
   if (!atkData || !defData || !mv) {
-    resultEl.innerHTML = '<div class="calc-hint">Selecciona atacante, defensor y movimiento para ver el resultado.</div>';
+    resultEl.innerHTML = `<div class="calc-hint">${window.LANG === 'en' ? 'Select attacker, defender, and move to see the result.' : 'Selecciona atacante, defensor y movimiento para ver el resultado.'}</div>`;
     return;
   }
   if (!mv.power || mv.category==='status') {
-    resultEl.innerHTML = '<div class="calc-hint">Este movimiento no causa daño directo.</div>';
+    resultEl.innerHTML = `<div class="calc-hint">${window.LANG === 'en' ? 'This move does not deal direct damage.' : 'Este movimiento no causa daño directo.'}</div>`;
     return;
   }
 
@@ -335,7 +342,7 @@ function dcRunCalc() {
   // Tipo efectividad
   const eff = dcTypeEff(mv.type, defTypes);
   if (eff===0) {
-    resultEl.innerHTML = `<div class="calc-result-immune">❌ Inmune — ${defData.name} no recibe daño de tipo ${DC_TYPE_ES[mv.type]||mv.type}</div>`;
+    resultEl.innerHTML = `<div class="calc-result-immune">❌ ${window.LANG === 'en' ? `Immune - ${defData.name} takes no damage from ${DC_TYPE_ES[mv.type]||mv.type}` : `Inmune — ${defData.name} no recibe daño de tipo ${DC_TYPE_ES[mv.type]||mv.type}`}</div>`;
     return;
   }
 
@@ -393,8 +400,8 @@ function dcRunCalc() {
           : `<div class="calc-ko-label">No derriba de 1 golpe. Necesita ${Math.ceil(defHP/maxDmg)} golpes como máximo.</div>`}
 
       <div class="calc-stats-detail">
-        ${isPhys?'Ataque':'Atk.Esp'}: ${atkStat} vs ${isPhys?'Defensa':'Def.Esp'}: ${defStat} · HP defensor: ${defHP}
-        · Efectividad: ×${eff} · STAB: ${stab===1.5?'Sí':'No'}
+        ${isPhys ? (window.LANG === 'en' ? 'Attack' : 'Ataque') : 'SpA'}: ${atkStat} vs ${isPhys ? (window.LANG === 'en' ? 'Defense' : 'Defensa') : 'SpD'}: ${defStat} · ${window.LANG === 'en' ? 'Defender HP' : 'HP defensor'}: ${defHP}
+        · ${window.LANG === 'en' ? 'Effectiveness' : 'Efectividad'}: ×${eff} · STAB: ${stab===1.5 ? (window.LANG === 'en' ? 'Yes' : 'Sí') : 'No'}
       </div>
     </div>`;
 }
@@ -413,7 +420,7 @@ function buildCalcSection() {
         <div class="calc-panel-title">⚔️ Atacante</div>
         <div class="calc-search-wrap" style="position:relative;margin-bottom:10px">
           <input type="text" id="calc-atk-input" class="editor-input"
-            placeholder="Busca Pokémon en español o inglés..." autocomplete="off" />
+            placeholder="${window.LANG === 'en' ? 'Search Pokemon in Spanish or English...' : 'Busca Pokémon en español o inglés...'}" autocomplete="off" />
           <div id="calc-atk-sugg" class="editor-suggestions"></div>
         </div>
         <div id="calc-atk-preview"></div>
@@ -425,22 +432,22 @@ function buildCalcSection() {
         <div class="calc-panel-title">💥 Movimiento</div>
         <div class="calc-search-wrap" style="position:relative;margin-bottom:10px">
           <input type="text" id="calc-move-input" class="editor-input"
-            placeholder="Busca movimiento en español o inglés..." autocomplete="off" />
+            placeholder="${window.LANG === 'en' ? 'Search moves in Spanish or English...' : 'Busca movimiento en español o inglés...'}" autocomplete="off" />
           <div id="calc-move-sugg" class="editor-suggestions"></div>
         </div>
         <div id="calc-move-preview"></div>
 
         <div style="margin-top:12px">
-          <label class="editor-label">Modificadores</label>
+          <label class="editor-label">${window.LANG === 'en' ? 'Modifiers' : 'Modificadores'}</label>
           <div class="calc-mods">
-            <label class="calc-mod-item"><input type="checkbox" id="calc-crit" /> Golpe crítico (×1.5 Ataque)</label>
-            <label class="calc-mod-item"><input type="checkbox" id="calc-weather" /> Clima favorable (×1.5)</label>
+            <label class="calc-mod-item"><input type="checkbox" id="calc-crit" /> ${window.LANG === 'en' ? 'Critical hit (x1.5 Attack)' : 'Golpe crítico (×1.5 Ataque)'}</label>
+            <label class="calc-mod-item"><input type="checkbox" id="calc-weather" /> ${window.LANG === 'en' ? 'Favorable weather (x1.5)' : 'Clima favorable (×1.5)'}</label>
           </div>
         </div>
 
         <!-- RESULTADO siempre visible aquí -->
         <div id="calc-result" class="calc-result" style="margin-top:14px">
-          <div class="calc-hint">Selecciona atacante, defensor y movimiento para calcular.</div>
+          <div class="calc-hint">${window.LANG === 'en' ? 'Select attacker, defender, and move to calculate.' : 'Selecciona atacante, defensor y movimiento para calcular.'}</div>
         </div>
       </div>
 
@@ -449,7 +456,7 @@ function buildCalcSection() {
         <div class="calc-panel-title">🛡️ Defensor</div>
         <div class="calc-search-wrap" style="position:relative;margin-bottom:10px">
           <input type="text" id="calc-def-input" class="editor-input"
-            placeholder="Busca Pokémon en español o inglés..." autocomplete="off" />
+            placeholder="${window.LANG === 'en' ? 'Search Pokemon in Spanish or English...' : 'Busca Pokémon en español o inglés...'}" autocomplete="off" />
           <div id="calc-def-sugg" class="editor-suggestions"></div>
         </div>
         <div id="calc-def-preview"></div>

@@ -18,9 +18,14 @@ const {
   TeamValidator,
   Dex,
 } = require('pokemon-showdown');
+// BattleStream = flujo de mensajes del simulador.
+// Teams = utilidades para importar, exportar o generar equipos.
+// TeamValidator = comprueba si un equipo es legal.
+// Dex = base de datos de Showdown con Pokemon, movimientos, tipos, etc.
 
 // Genera una semilla aleatoria para formatos random battle.
 function createRandomSeed() {
+  // map recorre los 4 huecos del array y crea 4 numeros aleatorios.
   return [0, 0, 0, 0].map(() => Math.floor(Math.random() * 65536));
 }
 
@@ -30,6 +35,7 @@ function resolveRandomFormat(format) {
     return format;
   }
 
+  // match busca algo como "gen9" y extrae solo el numero.
   const generation = (format || '').match(/gen(\d+)/)?.[1] || '9';
   return `gen${generation}randombattle`;
 }
@@ -45,6 +51,7 @@ function toPokemonSet(slot) {
     nature: slot.nature || 'Hardy',
     gender: slot.gender || '',
     level: slot.level || 100,
+    // EVs = puntos de entrenamiento que mejoran stats.
     evs: {
       hp: 0,
       atk: 0,
@@ -54,6 +61,7 @@ function toPokemonSet(slot) {
       spe: 0,
       ...(slot.evs || {}),
     },
+    // IVs = valores base internos de cada estadistica.
     ivs: {
       hp: 31,
       atk: 31,
@@ -177,11 +185,13 @@ function buildFallbackPracticeTeamAlt() {
 function normalizeTeamPayload(payload, format) {
   // Si no hay payload o se ha pedido random, generamos equipo random.
   if (!payload || payload.teamMode === 'random') {
+    // Teams.generate crea un equipo aleatorio siguiendo el formato.
     return Teams.generate(resolveRandomFormat(format));
   }
 
   // Si el usuario mandó texto estilo Showdown, lo importamos.
   if (payload.teamText) {
+    // Teams.import convierte el texto estilo Showdown a objetos utilizables.
     const importedTeam = Teams.import(payload.teamText);
     if (importedTeam?.length) {
       return importedTeam;
@@ -199,6 +209,7 @@ function normalizeTeamPayload(payload, format) {
 
 // Construye el objeto final que Showdown necesita para registrar un jugador.
 function buildPlayerSpec(playerName, payload, format) {
+  // Dex.formats.get busca la informacion oficial del formato elegido.
   const formatData = Dex.formats.get(format);
 
   // En formatos random, no mandamos team empaquetado.
@@ -218,7 +229,8 @@ function buildPlayerSpec(playerName, payload, format) {
   return {
     spec: {
       name: playerName,
-      team: Teams.pack(team),
+        // Teams.pack comprime el equipo en el formato interno de Showdown.
+        team: Teams.pack(team),
     },
     team,
   };
@@ -229,8 +241,33 @@ function isFainted(condition) {
   return `${condition || ''}`.endsWith(' fnt');
 }
 
+function shuffleList(list) {
+  // [...list] = copia del array para no modificar el original.
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function scoreBotMove(move) {
+  // move.id es el nombre interno del movimiento, por ejemplo "earthquake".
+  const moveData = Dex.moves.get(move.id || move.move || '');
+  if (!moveData || !moveData.exists) return 1;
+  if (moveData.category === 'Status') {
+    if (moveData.boosts || moveData.self?.boosts || moveData.heal || moveData.status) return 45;
+    return 15;
+  }
+  const power = moveData.basePower || 40;
+  const priorityBonus = (moveData.priority || 0) * 12;
+  const accuracyFactor = typeof moveData.accuracy === 'number' ? (moveData.accuracy / 100) : 1;
+  return Math.round((power + priorityBonus) * accuracyFactor);
+}
+
 // Para dobles, elegimos un objetivo simple para el bot.
 function pickFirstTarget(request, activeIndex, move) {
+  // target = a quien puede apuntar legalmente este movimiento.
   const target = move?.target;
   const activeCount = request?.active?.length || 1;
 
@@ -276,22 +313,24 @@ function chooseBotAction(request) {
 
   // Si estamos en team preview, elegimos el orden por defecto.
   if (request.teamPreview) {
+    // maxChosenTeamSize = cuantos Pokemon permite elegir el formato al empezar.
     const size = request.maxChosenTeamSize || team.length;
-    return `team ${team.map((_, index) => index + 1).slice(0, size).join('')}`;
+    return `team ${shuffleList(team.map((_, index) => index + 1)).slice(0, size).join('')}`;
   }
 
   // Si el simulador obliga a cambiar, buscamos huecos libres vivos.
   if (request.forceSwitch) {
     const usedSlots = new Set();
+    const availableSlots = shuffleList(team.map((pokemon, index) => ({ pokemon, index })));
 
     const choices = request.forceSwitch.map((needed) => {
       if (!needed) {
         return 'pass';
       }
 
-      const slot = team.findIndex((pokemon, index) => {
+      const slot = availableSlots.find(({ pokemon, index }) => {
         return !pokemon.active && !isFainted(pokemon.condition) && !usedSlots.has(index);
-      });
+      })?.index ?? -1;
 
       if (slot < 0) {
         return 'pass';
@@ -315,10 +354,15 @@ function chooseBotAction(request) {
         return 'pass';
       }
 
-      const usableMoves = (active.moves || []).filter((move) => !move.disabled);
+      const usableMoves = shuffleList((active.moves || []).filter((move) => !move.disabled));
 
       if (usableMoves.length) {
-        const move = usableMoves[0];
+        const scoredMoves = usableMoves
+          .map((move) => ({ move, score: scoreBotMove(move) }))
+          .sort((a, b) => b.score - a.score);
+        const bestScore = scoredMoves[0]?.score ?? 0;
+        const bestMoves = scoredMoves.filter((entry) => entry.score >= bestScore - 10);
+        const move = bestMoves[Math.floor(Math.random() * bestMoves.length)]?.move || usableMoves[0];
         const moveSlot = (active.moves || []).indexOf(move) + 1;
         return `move ${moveSlot}${pickFirstTarget(request, activeIndex, move)}`;
       }
@@ -327,9 +371,9 @@ function chooseBotAction(request) {
         return 'pass';
       }
 
-      const switchSlot = team.findIndex((pokemon, index) => {
+      const switchSlot = shuffleList(team.map((pokemon, index) => ({ pokemon, index }))).find(({ pokemon, index }) => {
         return !pokemon.active && !isFainted(pokemon.condition) && !usedSwitches.has(index);
-      });
+      })?.index ?? -1;
 
       if (switchSlot < 0) {
         return 'pass';
@@ -355,12 +399,14 @@ class BattleRoom {
     this.format = format;
 
     // WebSockets reales de los jugadores.
+    // Objeto clave -> valor donde guardamos los sockets reales de p1 y p2.
     this.players = {};
 
     // Nombre visible de cada lado.
     this.names = { p1: 'Jugador 1', p2: 'Jugador 2' };
 
     // Payload original recibido para montar el equipo.
+    // payload = paquete de datos que trae el equipo, modo de equipo y texto importado.
     this.payloads = { p1: null, p2: null };
 
     // Qué lados están listos.
@@ -373,6 +419,7 @@ class BattleRoom {
     this.battleStarted = false;
 
     // Stream principal del simulador.
+    // battleStream = "tuberia" principal por donde Showdown saca eventos.
     this.battleStream = null;
 
     // Streams por jugador y omnisciente.
@@ -393,12 +440,14 @@ class BattleRoom {
     this.ready[slot] = true;
 
     // Escuchamos mensajes del socket de ese jugador.
+    // ws.on('message') escucha lo que manda ese jugador.
     ws.on('message', (data) => {
       try {
+        // JSON.parse convierte texto JSON en objeto JavaScript.
         const message = JSON.parse(data);
         this.handleMessage(slot, message);
       } catch (error) {
-        this.send(slot, { type: 'error', message: error.message || 'Mensaje invalido' });
+        this.send(slot, { type: 'error', code: 'bad_socket_message', message: error.message || 'Invalid message' });
       }
     });
 
@@ -408,6 +457,7 @@ class BattleRoom {
       this.send(opponentSlot, { type: 'opponent_left' });
 
       if (this.battleStarted && this.streams?.omniscient) {
+        // omniscient = stream "que lo ve todo", usado para dar ordenes globales.
         void this.streams.omniscient.write(`>forcelose ${slot}`);
       }
     });
@@ -445,16 +495,18 @@ class BattleRoom {
   // Lee continuamente lo que escupe el simulador para un lado.
   async consumeStream(slot, stream) {
     try {
+      // for await ... of = va leyendo poco a poco lo que produce el simulador.
       for await (const chunk of stream) {
         this.forwardSimulatorChunk(slot, chunk);
       }
     } catch (error) {
-      this.send(slot, { type: 'error', message: error.message || 'Error del simulador' });
+      this.send(slot, { type: 'error', code: 'simulator_error', message: error.message || 'Simulator error' });
     }
   }
 
   // Convierte lo que llega de Showdown a mensajes que entienda nuestro frontend.
   forwardSimulatorChunk(slot, chunk) {
+    // split('\\n') separa cada bloque de texto en lineas individuales.
     for (const line of `${chunk}`.split('\n')) {
       if (!line) {
         continue;
@@ -463,18 +515,20 @@ class BattleRoom {
       // Las requests van como JSON y sirven para pedir decisiones al jugador.
       if (line.startsWith('|request|')) {
         try {
+          // slice(9) quita el prefijo "|request|" para quedarnos solo con el JSON.
           const request = JSON.parse(line.slice(9));
 
           if (this.bots[slot]) {
             const botChoice = chooseBotAction(request);
             if (botChoice) {
+              // write envia la decision del bot al simulador.
               void this.streams[slot].write(botChoice);
             }
           } else {
             this.send(slot, { type: 'request', request });
           }
         } catch {
-          this.send(slot, { type: 'error', message: 'Request invalido del simulador' });
+          this.send(slot, { type: 'error', code: 'invalid_request', message: 'Invalid simulator request' });
         }
 
         continue;
@@ -482,7 +536,7 @@ class BattleRoom {
 
       // Los errores del simulador los reenviamos tal cual.
       if (line.startsWith('|error|')) {
-        this.send(slot, { type: 'error', message: line.slice(7) });
+        this.send(slot, { type: 'error', code: 'simulator_error', message: line.slice(7) });
         continue;
       }
 
@@ -522,17 +576,18 @@ class BattleRoom {
 
       // Si ambos equipos son normales y no random, los validamos.
       if (p1Team && p2Team) {
+        // validator = comprobador oficial de legalidad del equipo en ese formato.
         const validator = TeamValidator.get(this.format);
 
         const p1Problems = validator.validateTeam(p1Team);
         const p2Problems = validator.validateTeam(p2Team);
 
         if (p1Problems?.length) {
-          throw new Error(`Equipo 1 invalido: ${p1Problems[0]}`);
+          throw new Error(`Team 1 invalid: ${p1Problems[0]}`);
         }
 
         if (p2Problems?.length) {
-          throw new Error(`Equipo 2 invalido: ${p2Problems[0]}`);
+          throw new Error(`Team 2 invalid: ${p2Problems[0]}`);
         }
       }
     } catch (error) {
@@ -544,7 +599,8 @@ class BattleRoom {
 
         this.send('p1', {
           type: 'error',
-          message: 'Tu equipo no era legal para este formato. En modo práctica uso un equipo de prueba para que puedas testear la batalla.',
+          code: 'practice_team_fallback',
+          message: 'Practice fallback team applied.',
         });
 
         this.startBattle();
@@ -553,15 +609,18 @@ class BattleRoom {
 
       this.broadcast({
         type: 'error',
-        message: error.message || 'No se pudieron validar los equipos',
+        code: 'team_invalid',
+        message: error.message || 'The teams could not be validated',
       });
       return;
     }
 
     // Creamos el stream real de la batalla.
+    // keepAlive ayuda a mantener el flujo activo mientras la batalla sigue abierta.
     this.battleStream = new BattleStream({ keepAlive: true });
 
     // Obtenemos los streams por jugador.
+    // getPlayerStreams separa la salida del simulador en lado p1, lado p2 y vista total.
     this.streams = getPlayerStreams(this.battleStream);
 
     // Marcamos que la batalla ya comenzó.
@@ -572,10 +631,12 @@ class BattleRoom {
     void this.consumeStream('p2', this.streams.p2);
 
     // Preparamos el mensaje inicial para Showdown.
+    // startSpec = datos minimos con los que se inicia el formato.
     const startSpec = {
       formatid: Dex.formats.get(this.format).id || this.format,
     };
 
+    // JSON.stringify convierte objetos a texto JSON para mandarlos a Showdown.
     const initMessage = [
       `>start ${JSON.stringify(startSpec)}`,
       `>player p1 ${JSON.stringify(p1Spec)}`,
@@ -595,9 +656,11 @@ class BattleRoom {
       return;
     }
 
+    // msg.type decide que accion ha pedido el frontend.
     switch (msg.type) {
       case 'choice':
         if (typeof msg.choice === 'string' && msg.choice.trim()) {
+          // trim quita espacios sobrantes al principio y final del texto.
           void this.streams[player].write(msg.choice.trim());
         }
         break;
@@ -623,6 +686,7 @@ class BattleRoom {
   // Envía un mensaje solo a un lado.
   send(player, data) {
     const ws = this.players[player];
+    // readyState === 1 significa que el socket sigue abierto.
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify(data));
     }

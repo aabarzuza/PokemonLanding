@@ -6,7 +6,7 @@
 async function loadSavedTeams() {
   const container = document.getElementById('saved-teams-list');
   if (!container) return;
-  container.innerHTML = '<div class="api-loading"><div class="api-spinner"></div><span>Cargando equipos...</span></div>';
+  container.innerHTML = `<div class="api-loading"><div class="api-spinner"></div><span>${window.t ? window.t('common.loadingTeams') : 'Cargando equipos...'}</span></div>`;
 
   const teams = await window.PH_API?.teams.getAll() || [];
 
@@ -14,8 +14,8 @@ async function loadSavedTeams() {
     container.innerHTML = `
       <div class="teams-empty">
         <div style="font-size:32px;margin-bottom:12px">🛡️</div>
-        <div style="font-size:14px;color:var(--text-muted)">No tienes equipos guardados todavía.</div>
-        <div style="font-size:13px;color:var(--text-hint);margin-top:6px">Crea uno en el Constructor y guárdalo aquí.</div>
+        <div style="font-size:14px;color:var(--text-muted)">${window.t ? window.t('common.noSavedTeams') : 'No tienes equipos guardados todavía.'}</div>
+        <div style="font-size:13px;color:var(--text-hint);margin-top:6px">${window.t ? window.t('common.createTeamFirst') : 'Crea uno en el Constructor y guárdalo aquí.'}</div>
       </div>`;
     return;
   }
@@ -31,8 +31,8 @@ async function loadSavedTeams() {
           </div>
         </div>
         <div class="saved-team-actions">
-          <button class="btn-team-load" data-id="${team.id}" title="Cargar en el constructor">⬆ Cargar</button>
-          <button class="btn-team-delete" data-id="${team.id}" title="Eliminar">🗑</button>
+          <button class="btn-team-load" data-id="${team.id}" title="${window.t ? window.t('common.load') : 'Cargar'}">⬆ ${window.t ? window.t('common.load') : 'Cargar'}</button>
+          <button class="btn-team-delete" data-id="${team.id}" title="${window.t ? window.t('common.delete') : 'Eliminar'}">🗑</button>
         </div>
       </div>
     </div>`
@@ -53,8 +53,13 @@ async function loadSavedTeams() {
 
   container.querySelectorAll('.btn-team-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar este equipo?')) return;
+      const approved = await (window.PH_UI?.confirm?.(
+        window.t ? window.t('common.deleteTeamConfirm') : '¿Eliminar este equipo?',
+        'PokeHub'
+      ) ?? Promise.resolve(false));
+      if (!approved) return;
       await window.PH_API.teams.delete(btn.dataset.id);
+      window.PH_UI?.toast?.(window.LANG === 'en' ? 'Team deleted.' : 'Equipo eliminado.', 'success');
       loadSavedTeams();
     });
   });
@@ -62,26 +67,45 @@ async function loadSavedTeams() {
 
 function formatDate(str) {
   if (!str) return '';
-  return new Date(str).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+  const locale = window.LANG === 'en' ? 'en-GB' : 'es-ES';
+  return new Date(str).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' });
 }
 
 /* Guardar equipo actual desde el constructor */
 async function saveCurrentTeam() {
   const code = typeof exportShowdown === 'function' ? exportShowdown() : '';
   if (!code.trim()) {
-    alert('El equipo está vacío. Añade al menos un Pokémon.');
+    await window.PH_UI?.alert?.(window.t ? window.t('common.emptyTeam') : 'El equipo está vacío. Añade al menos un Pokémon.', 'PokeHub');
     return;
   }
 
-  const name   = prompt('Nombre del equipo:', 'Mi equipo');
-  if (!name) return;
-  const format = prompt('Formato (OU, UU, Doubles...)', 'OU') || 'OU';
+  const values = await (window.PH_UI?.prompt?.(
+    window.LANG === 'en' ? 'Save your current team in PokéHub.' : 'Guarda tu equipo actual en PokéHub.',
+    {
+      title: 'PokeHub',
+      confirmLabel: window.t ? window.t('common.saveTeam') : 'Guardar equipo',
+      fields: [
+        { id: 'name', label: window.t ? window.t('common.teamNamePrompt') : 'Nombre del equipo:', value: 'Mi equipo' },
+        { id: 'format', label: window.t ? window.t('common.teamFormatPrompt') : 'Formato (OU, UU, Doubles...)', value: 'OU' },
+      ],
+    }
+  ) ?? Promise.resolve(null));
+
+  if (!values?.name) return;
+  const name = values.name;
+  const format = values.format || 'OU';
 
   const saved = await window.PH_API?.teams.save(name, format, code);
   if (saved) {
-    alert(`✅ Equipo "${saved.name}" guardado correctamente.`);
+    window.PH_UI?.toast?.(
+      `${saved.name}: ${window.t ? window.t('common.teamSaved') : 'Equipo guardado correctamente.'}`,
+      'success'
+    );
   } else {
-    alert('⚠️ No se pudo guardar. ¿Está el servidor corriendo?');
+    await window.PH_UI?.alert?.(
+      window.t ? window.t('common.teamSaveError') : 'No se pudo guardar. ¿Está el servidor corriendo?',
+      'PokeHub'
+    );
   }
 }
 
@@ -92,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (topbar) {
     const saveBtn = document.createElement('button');
     saveBtn.className = 'btn-secondary';
-    saveBtn.textContent = '💾 Guardar equipo';
+    saveBtn.textContent = `💾 ${window.t ? window.t('common.saveTeam') : 'Guardar equipo'}`;
     saveBtn.addEventListener('click', saveCurrentTeam);
     topbar.prepend(saveBtn);
   }
@@ -108,4 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Botón de actualizar
   document.getElementById('btn-refresh-teams')?.addEventListener('click', loadSavedTeams);
+});
+
+document.addEventListener('langchange', () => {
+  const saveBtn = document.querySelector('.tb-topbar .tb-actions .btn-secondary');
+  if (saveBtn) saveBtn.textContent = `💾 ${window.t ? window.t('common.saveTeam') : 'Guardar equipo'}`;
+  if (document.querySelector('#section-equipos.section.active')) {
+    loadSavedTeams();
+  }
 });

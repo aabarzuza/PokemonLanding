@@ -1,0 +1,4 @@
+pokehub/backend/src/db/*.db-shm
+pokehub/backend/src/db/*.db-wal
+pokehub/backend/src/db/*.db-journal
+pokehub/backend/node_modules/
