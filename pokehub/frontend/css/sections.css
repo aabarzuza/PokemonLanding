@@ -110,149 +110,305 @@
    ========================================= */
 
 /* =========================================
-   SECCION CONSULTA - Wiki rapida
+   ANALISIS DE EQUIPO
+   Inspirado en el flujo visual de Marriland.
    ========================================= */
 
-.consult-shell {
-  max-width: 1180px;
+.analysis-shell {
+  max-width: 1240px;
 }
 
-.consult-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+.analysis-hero,
+.analysis-card {
+  background: linear-gradient(180deg, #39579d 0%, #2f4f97 100%);
+  border: 1px solid rgba(12, 28, 71, 0.45);
+  border-radius: 18px;
+  box-shadow: 0 18px 36px rgba(16, 28, 68, 0.14);
+}
+
+.analysis-hero {
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
   gap: 18px;
-  align-items: stretch;
-  margin-bottom: 24px;
+  align-items: flex-start;
 }
 
-.consult-hero-copy,
-.consult-highlight,
-.consult-card,
-.consult-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.consult-hero-copy {
-  padding: 22px 22px 20px;
-}
-
-.consult-title,
-.consult-card-title,
-.consult-panel-title {
+.analysis-title,
+.analysis-card-title {
   font-family: var(--font-display);
+  color: #fff;
 }
 
-.consult-title {
-  font-size: 28px;
-  line-height: 1.15;
-  color: var(--text);
+.analysis-title {
+  font-size: 30px;
+  line-height: 1.08;
   margin-bottom: 10px;
 }
 
-.consult-text {
-  font-size: 15px;
-  color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 62ch;
-}
-
-.consult-highlight {
-  padding: 18px;
-  background: linear-gradient(180deg, #f8faff 0%, #eef3ff 100%);
-}
-
-.consult-highlight-title {
-  font-family: var(--font-display);
+.analysis-text,
+.analysis-card-sub {
+  color: rgba(241, 245, 255, 0.9);
   font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 10px;
+  line-height: 1.7;
 }
 
-.consult-highlight-step {
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.55;
-  padding: 8px 0;
-  border-top: 1px solid rgba(74, 108, 247, 0.12);
+.analysis-hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.consult-highlight-step:first-of-type {
-  border-top: 0;
-  padding-top: 0;
+.analysis-hero .btn-primary,
+.analysis-hero .btn-secondary {
+  min-width: 210px;
 }
 
-.consult-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+.analysis-card {
+  padding: 16px 16px 18px;
   margin-bottom: 18px;
 }
 
-.consult-card {
-  padding: 18px;
+.analysis-card-header {
+  margin-bottom: 12px;
+}
+
+.analysis-card-title {
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+.analysis-team-editor {
   display: grid;
-  gap: 10px;
-  align-content: start;
+  gap: 1px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(14, 32, 78, 0.42);
+  background: rgba(13, 24, 62, 0.28);
 }
 
-.consult-card-icon {
-  font-size: 24px;
-}
-
-.consult-card-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.consult-card-text {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.65;
-}
-
-.consult-card-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.consult-card-btn {
-  width: 100%;
-}
-
-.consult-card-actions .consult-card-btn {
-  width: auto;
-  flex: 1 1 140px;
-}
-
-.consult-panel {
-  padding: 18px;
-}
-
-.consult-panel-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
-}
-
-.consult-panel-list {
+.analysis-row {
   display: grid;
+  grid-template-columns: 170px minmax(220px, 1fr) 180px 170px;
   gap: 10px;
-}
-
-.consult-panel-item {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.65;
+  align-items: center;
   padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--bg);
+  background: rgba(74, 109, 189, 0.86);
+}
+
+.analysis-row:nth-child(odd) {
+  background: rgba(61, 94, 174, 0.92);
+}
+
+.analysis-row-label {
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.analysis-search-wrap {
+  position: relative;
+}
+
+.analysis-input,
+.analysis-select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(18, 27, 56, 0.6);
+  background: #fff;
+  color: #111a38;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: var(--font);
+}
+
+.analysis-input:focus,
+.analysis-select:focus {
+  outline: 2px solid rgba(159, 195, 255, 0.65);
+  border-color: rgba(159, 195, 255, 0.8);
+}
+
+.analysis-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: none;
+  z-index: 12;
+  background: #f8fbff;
+  border: 1px solid rgba(28, 39, 86, 0.18);
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(16, 28, 68, 0.22);
+  overflow: hidden;
+}
+
+.analysis-suggestions.is-open {
+  display: block;
+}
+
+.analysis-suggestion {
+  width: 100%;
+  border: 0;
+  background: #f8fbff;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.analysis-suggestion + .analysis-suggestion {
+  border-top: 1px solid rgba(23, 36, 89, 0.08);
+}
+
+.analysis-suggestion:hover {
+  background: #eef4ff;
+}
+
+.analysis-suggestion-sprite {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.analysis-suggestion-main {
+  display: block;
+  color: #14214e;
+  font-weight: 700;
+}
+
+.analysis-suggestion-sub {
+  display: block;
+  color: #5b6790;
+  font-size: 12px;
+}
+
+.analysis-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+}
+
+.analysis-table {
+  width: 100%;
+  min-width: 960px;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #fff;
+}
+
+.analysis-table thead th {
+  background: #243b71;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.analysis-top-left,
+.analysis-summary-head,
+.analysis-mon-head {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.analysis-top-left,
+.analysis-summary-head {
+  font-family: var(--font-display);
+  font-size: 17px;
+  text-align: center;
+}
+
+.analysis-mon-head {
+  min-width: 105px;
+  text-align: center;
+}
+
+.analysis-mon-sprite {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.analysis-mon-name {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.analysis-type-cell,
+.analysis-cell,
+.analysis-total {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.analysis-type-cell {
+  width: 102px;
+  padding: 2px 4px;
+  background: rgba(26, 44, 90, 0.95);
+}
+
+.analysis-type-pill {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 30px;
+  width: 100%;
+  border-radius: 8px;
+  background: var(--type);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18);
+}
+
+.analysis-cell,
+.analysis-total {
+  height: 40px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  background: rgba(55, 90, 176, 0.96);
+}
+
+.analysis-cell.resist {
+  color: #51ff51;
+}
+
+.analysis-cell.weak {
+  color: #ff4438;
+}
+
+.analysis-cell.immune {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.analysis-total.weak {
+  background: rgba(153, 44, 68, 0.65);
+  color: #fff34a;
+}
+
+.analysis-total.resist {
+  background: rgba(23, 118, 81, 0.72);
+  color: #d9fff0;
+}
+
+.analysis-empty {
+  padding: 26px 18px;
+  border-radius: 14px;
+  background: rgba(31, 45, 92, 0.68);
+  color: rgba(241, 245, 255, 0.9);
+  text-align: center;
 }
 
 .glossary-controls { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -516,6 +672,31 @@
 .back-btn:hover { text-decoration: underline; }
 
 .api-hint { padding: 20px 0; font-size: 13px; color: var(--text-hint); }
+
+@media (max-width: 980px) {
+  .analysis-hero {
+    flex-direction: column;
+  }
+
+  .analysis-hero-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .analysis-hero .btn-primary,
+  .analysis-hero .btn-secondary {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+
+  .analysis-row {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-row-label {
+    margin-bottom: -2px;
+  }
+}
 
 /* =========================================
    CONSTRUCTOR DE EQUIPOS — Layout

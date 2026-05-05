@@ -1203,3 +1203,20 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModal();
   });
 });
+
+window.getBuilderTeam = function () {
+  return TEAM.map((slot) => ({
+    idx: slot.idx,
+    name_en: slot.name_en,
+    name_es: slot.name_es,
+    id: slot.id,
+    sprite: slot.sprite,
+    types: [...slot.types],
+    item: slot.item,
+    ability: slot.ability,
+    nature: slot.nature,
+    moves: [...slot.moves],
+    evs: { ...slot.evs },
+    ivs: { ...slot.ivs },
+  }));
+};

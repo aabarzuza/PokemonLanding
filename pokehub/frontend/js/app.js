@@ -106,6 +106,10 @@ function navigateTo(sectionId) {
     setTimeout(buildTypeCalculatorSection, 50);
   }
 
+  if (sectionId === 'consulta' && typeof buildTeamAnalysisSection === 'function') {
+    setTimeout(buildTeamAnalysisSection, 50);
+  }
+
   if (sectionId === 'equipos' && typeof loadSavedTeams === 'function') {
     setTimeout(loadSavedTeams, 50);
   }
@@ -150,7 +154,7 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// Estos botones sirven para abrir una seccion concreta desde la wiki rapida.
+// Estos botones sirven para abrir una seccion concreta desde otras tarjetas o atajos.
 document.addEventListener('click', (event) => {
   const quickBtn = event.target.closest('[data-open-section]');
   if (!quickBtn) return;

@@ -30,8 +30,8 @@
         <span class="nav-label">Inicio</span>
       </a>
       <a href="#" class="nav-item" data-section="consulta">
-        <span class="nav-icon">🎮</span>
-        <span class="nav-label">Wiki rápida</span>
+        <span class="nav-icon">🧩</span>
+        <span class="nav-label">Analisis de equipo</span>
       </a>
       <a href="#" class="nav-item" data-section="calculadora">
         <span class="nav-icon">🧮</span>
@@ -327,84 +327,38 @@
 
       <!-- SECCIÓN: COMBATE -->
       <section id="section-consulta" class="section">
-        <div class="section-inner consult-shell">
-          <div class="consult-hero">
-            <div class="consult-hero-copy">
-              <div id="consult-badge" class="hero-badge">Wiki companion</div>
-              <h2 id="consult-title" class="consult-title">Centro de consulta competitiva</h2>
-              <p id="consult-text" class="consult-text">Usa PokéHub como una wiki rápida mientras juegas en Pokémon Showdown o Pokémon Champions. Todo está orientado a consultar datos, matchups, daño, builds y conceptos sin perder el hilo de la partida real.</p>
+        <div class="section-inner analysis-shell">
+          <div class="analysis-hero">
+            <div>
+              <div id="analysis-badge" class="hero-badge">Team coverage</div>
+              <h2 id="analysis-title" class="analysis-title">Analisis de equipo</h2>
+              <p id="analysis-text" class="analysis-text">Estudia la cobertura defensiva de tus seis Pokemon, compara formas, prueba habilidades clave y detecta debilidades repetidas antes de exportar el equipo.</p>
             </div>
-            <div class="consult-highlight">
-              <div id="consult-flow-title" class="consult-highlight-title">Flujo recomendado</div>
-              <div id="consult-flow-1" class="consult-highlight-step">1. Busca el Pokémon, movimiento u objeto que tengas delante.</div>
-              <div id="consult-flow-2" class="consult-highlight-step">2. Comprueba el daño o la cobertura de tipos.</div>
-              <div id="consult-flow-3" class="consult-highlight-step">3. Ajusta tu equipo o tus notas en el builder.</div>
-              <div id="consult-flow-4" class="consult-highlight-step">4. Vuelve a Showdown con la información clara.</div>
+            <div class="analysis-hero-actions">
+              <button id="analysis-use-builder" class="btn-primary">Usar equipo del constructor</button>
+              <button id="analysis-clear-team" class="btn-secondary">Limpiar analisis</button>
             </div>
           </div>
 
-          <div class="consult-grid">
-            <article class="consult-card">
-              <div class="consult-card-icon">🔴</div>
-              <h3 id="consult-card-pokemon-title" class="consult-card-title">Pokémon</h3>
-              <p id="consult-card-pokemon-text" class="consult-card-text">Consulta tipos, stats, tiers, descripciones y learnsets para decidir cambios, coberturas y checks.</p>
-              <button id="consult-card-pokemon-btn" class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="pokemon">Abrir Pokémon</button>
-            </article>
-
-            <article class="consult-card">
-              <div class="consult-card-icon">💥</div>
-              <h3 id="consult-card-moves-title" class="consult-card-title">Movimientos</h3>
-              <p id="consult-card-moves-text" class="consult-card-text">Busca en español o inglés y revisa potencia, precisión, categoría y usuarios comunes.</p>
-              <button id="consult-card-moves-btn" class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="movimientos">Abrir movimientos</button>
-            </article>
-
-            <article class="consult-card">
-              <div class="consult-card-icon">✨</div>
-              <h3 id="consult-card-tools-title" class="consult-card-title">Habilidades y objetos</h3>
-              <p id="consult-card-tools-text" class="consult-card-text">Comprueba efectos, sinergias y detalles clave para entender sets y win conditions rivales.</p>
-              <div class="consult-card-actions">
-                <button id="consult-card-abilities-btn" class="btn-primary consult-card-btn" data-open-section="glosario" data-open-tab="habilidades">Habilidades</button>
-                <button id="consult-card-items-btn" class="btn-secondary consult-card-btn" data-open-section="glosario" data-open-tab="objetos">Objetos</button>
-              </div>
-            </article>
-
-            <article class="consult-card">
-              <div class="consult-card-icon">🧮</div>
-              <h3 id="consult-card-damage-title" class="consult-card-title">Calculadora de daño</h3>
-              <p id="consult-card-damage-text" class="consult-card-text">Estima daño real entre dos Pokémon ajustando EVs, habilidades, objetos y condiciones del campo.</p>
-              <button id="consult-card-damage-btn" class="btn-primary consult-card-btn" data-open-section="calculadora">Abrir calculadora</button>
-            </article>
-
-            <article class="consult-card">
-              <div class="consult-card-icon">🗺️</div>
-              <h3 id="consult-card-types-title" class="consult-card-title">Calculadora de tipos</h3>
-              <p id="consult-card-types-text" class="consult-card-text">Analiza debilidades, resistencias, inmunidades y coberturas ofensivas con uno o dos tipos.</p>
-              <button id="consult-card-types-btn" class="btn-primary consult-card-btn" data-open-section="tipos">Abrir tipos</button>
-            </article>
-
-            <article class="consult-card">
-              <div class="consult-card-icon">🛡️</div>
-              <h3 id="consult-card-builder-title" class="consult-card-title">Builder y equipos</h3>
-              <p id="consult-card-builder-text" class="consult-card-text">Crea equipos, expórtalos a Showdown y guarda versiones para seguir iterando fuera de la partida.</p>
-              <div class="consult-card-actions">
-                <button id="consult-card-builder-btn" class="btn-primary consult-card-btn" data-open-section="constructor">Abrir builder</button>
-                <button id="consult-card-saved-btn" class="btn-secondary consult-card-btn" data-open-section="equipos">Ver guardados</button>
-              </div>
-            </article>
+          <div class="analysis-card">
+            <div class="analysis-card-header">
+              <h3 id="analysis-builder-title" class="analysis-card-title">Aporte del equipo</h3>
+              <p id="analysis-builder-text" class="analysis-card-sub">Elige hasta 6 Pokemon para ver como responde tu equipo frente a cada tipo atacante.</p>
+            </div>
+            <div id="analysis-team-editor" class="analysis-team-editor"></div>
           </div>
 
-          <div class="consult-panel">
-            <h3 id="consult-panel-title" class="consult-panel-title">Por qué este enfoque encaja mejor</h3>
-            <div class="consult-panel-list">
-              <div id="consult-panel-1" class="consult-panel-item">La web tiene un propósito claro y fácil de entender: consultar información competitiva rápida mientras juegas.</div>
-              <div id="consult-panel-2" class="consult-panel-item">Las funciones principales se prueban en segundos: búsquedas, calculadoras, builder y equipos guardados.</div>
-              <div id="consult-panel-3" class="consult-panel-item">Puedes usarla de verdad al lado de Showdown sin depender de cambiar de herramienta cada minuto.</div>
+          <div class="analysis-card">
+            <div class="analysis-card-header">
+              <h3 id="analysis-table-title" class="analysis-card-title">Cobertura defensiva</h3>
+              <p id="analysis-table-text" class="analysis-card-sub">Cada fila es un tipo atacante. Cada columna te dice si ese Pokemon resiste, recibe dano neutro, es debil o inmune.</p>
             </div>
+            <div id="analysis-table-wrap" class="analysis-table-wrap"></div>
           </div>
         </div>
       </section>
 
-      <!-- SECCIÓN: CALCULADORA -->
+      <!-- SECCION: CALCULADORA -->
       <section id="section-calculadora" class="section">
         <div class="section-inner" style="max-width:1100px;">
           <h2>Calculadora de daño</h2>
@@ -591,6 +545,7 @@
   <script src="js/teambuilder.js"></script>
   <script src="js/damage-calc.js"></script>
   <script src="js/type-calculator.js"></script>
+  <script src="js/team-analysis.js"></script>
   <script src="js/teams-manager.js"></script>
 </body>
 </html>
