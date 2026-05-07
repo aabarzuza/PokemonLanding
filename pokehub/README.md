@@ -16,9 +16,7 @@ La idea del proyecto es que el usuario pueda tener abierta esta web mientras jue
 - analisis de equipo
 - equipos guardados
 
-No es un simulador de combates. Es una **web de apoyo y consulta competitiva**.
-
----
+Es una **web de apoyo y consulta competitiva**.
 
 ## 2. Tecnologias que he usado
 
@@ -34,13 +32,6 @@ En el back-end tambien uso:
 - `Node.js`
 - `Express`
 - `SQLite`
-
-Importante:
-
-- He limpiado el proyecto para que la parte entregable no dependa de archivos `.ts`, `.tsx` o `.svg` propios.
-- Los datos principales que usa la web estan ya en archivos `.js` y `.json`.
-
----
 
 ## 3. Estructura del proyecto
 

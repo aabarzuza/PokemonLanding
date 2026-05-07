@@ -2,12 +2,10 @@
 
 ## 1. Enfoque del proyecto
 
-PokeHub es una **landing page interactiva con front-end y back-end** orientada a servir como **wiki y herramienta de consulta competitiva** mientras el usuario juega en Pokemon Showdown o Pokemon Champions.
-
-No intenta sustituir al simulador oficial, sino acompañarlo con:
+PokeHub es una landing page interactiva con front-end y back-end orientada a servir como wiki y herramienta de consulta competitiva mientras el usuario juega en Pokemon Showdown o Pokemon Champions.
 
 - buscadores de Pokemon, movimientos, habilidades y objetos
-- calculadora de dano
+- calculadora de daño
 - calculadora de tipos
 - constructor de equipos
 - sistema de equipos guardados
@@ -23,54 +21,41 @@ Repositorio publico:
 
 ### 3.1 Requisitos
 
-- Node.js 18 o superior
+- Node.js 
 - npm
 
 ### 3.2 Instalacion
 
 Entrar en:
 
-```powershell
+powershell/cmd
 cd pokehub/backend
 npm install
-```
+
 
 ### 3.3 Base de datos
 
 Si la base de datos no estuviera creada:
 
-```powershell
+powershell/cmd
 node src/db/seed.js
-```
+
 
 ### 3.4 Arranque normal
 
-```powershell
+powershell/cmd
 npm start
-```
+
 
 Abrir en el navegador:
 
-```text
+
 http://localhost:3000
-```
 
-### 3.5 Si el puerto 3000 esta ocupado
 
-```powershell
-$env:PORT=3001
-npm start
-```
-
-Y abrir:
-
-```text
-http://localhost:3001
-```
 
 ## 4. Estructura general
 
-```text
 pokehub/
 ├── frontend/
 │   ├── index.html
@@ -84,10 +69,7 @@ pokehub/
 │       ├── routes/
 │       ├── db/
 │       └── battle/
-├── README.md
-├── GUIA-DEFENSA-PROYECTO.md
 └── DOCUMENTACION-TECNICA.md
-```
 
 ## 5. Front-end y back-end reales
 
@@ -123,7 +105,7 @@ Su trabajo es:
 
 ## 6. Tipografias y criterio visual
 
-El proyecto usa **tres tipografias** distintas con funciones separadas:
+El proyecto usa tres tipografias distintas con funciones separadas:
 
 1. `Source Sans 3`
    - tipografia principal del cuerpo
@@ -228,7 +210,7 @@ Archivo: `frontend/css/sections.css`
 
 ## 9. Funcionalidades implementadas
 
-El proyecto implementa mas de cinco funcionalidades reales. A continuacion se documentan las principales.
+El proyecto implementa mas de cinco funcionalidades reales. A continuación se documentan las principales.
 
 ### 9.1 Navegacion SPA por secciones
 
@@ -280,13 +262,13 @@ window.LANG = urlLang === 'es' || urlLang === 'en'
 localStorage.setItem('pokehub-lang', window.LANG);
 ```
 
-### 9.3 Busqueda de Pokemon, movimientos, habilidades y objetos
+### 9.3 Búsqueda de Pokemon, movimientos, habilidades y objetos
 
 La web consulta datos reales desde el backend y los muestra en tarjetas.
 
 Que hace:
 
-- permite buscar en ingles o espanol
+- permite buscar en inglés o español
 - muestra resultados detallados
 - sirve como wiki rapida durante una partida externa
 
@@ -305,15 +287,15 @@ app.use('/api/abilities', require('./routes/abilities'));
 app.use('/api/items', require('./routes/items'));
 ```
 
-### 9.4 Calculadora de dano
+### 9.4 Calculadora de daño
 
-Permite comparar dos Pokemon y estimar dano competitivo.
+Permite comparar dos Pokemon y estimar daño competitivo.
 
 Que hace:
 
 - seleccion de atacante y defensor
 - ajuste de stats
-- lectura de dano estimado
+- lectura de daño estimado
 
 Archivo: `frontend/js/app.js`
 
@@ -389,13 +371,12 @@ app.use('/api/teams', require('./routes/teams'));
 
 ### 9.8 Centro de consulta rapida
 
-Se ha creado una seccion intermedia pensada como companion wiki.
+Se ha creado una seccion pensada como companion wiki.
 
 Que hace:
 
 - abre directamente Pokemon, movimientos, habilidades u objetos
 - redirige a calculadoras y builder
-- simplifica el flujo de uso real durante una partida externa
 
 Archivo: `frontend/index.html`
 
@@ -435,38 +416,3 @@ Archivo: `frontend/js/teams-manager.js`
 const saved = await window.PH_API?.teams.save(name, format, code);
 ```
 
-## 11. Estabilidad y entregabilidad
-
-Medidas tomadas para que la entrega sea revisable:
-
-- scripts claros en `package.json`
-- mensaje explicativo si el puerto 3000 esta ocupado
-- documentacion de arranque y puerto alternativo
-- frontend y backend separados
-- estructura de carpetas legible
-
-Fragmento relevante:
-
-Archivo: `backend/package.json`
-
-```json
-"scripts": {
-  "start": "node src/server.js",
-  "dev": "nodemon src/server.js",
-  "setup": "node src/db/seed.js"
-}
-```
-
-## 12. Resumen final para defensa
-
-PokeHub cumple la idea de landing page interactiva porque combina:
-
-- interfaz visual completa
-- backend real
-- varias herramientas funcionales
-- responsive
-- animaciones
-- tipografias justificadas
-- documentacion tecnica
-
-El enfoque final del proyecto no es ser un simulador, sino una **wiki competitiva util y ejecutable** que acompana al usuario mientras juega en plataformas externas.

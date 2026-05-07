@@ -194,7 +194,7 @@
             class="analysis-input"
             id="analysis-input-${idx}"
             value="${entry ? translatedName(entry) : row.query}"
-            placeholder="${window.t ? window.t('analysis.emptySlot') : t('Escribe un Pokemon...', 'Type a Pokemon...')}"
+            placeholder="${window.t ? window.t('Elige tu Pokemón...') : t('Escribe un Pokemon...', 'Type a Pokemon...')}"
             autocomplete="off"
           />
           <div id="analysis-suggest-${idx}" class="analysis-suggestions"></div>
@@ -202,10 +202,10 @@
         <select class="analysis-select" id="analysis-form-${idx}" ${!entry ? 'disabled' : ''}>
           ${entry
             ? forms.map((form) => `<option value="${form.id}" ${form.id === row.formId ? 'selected' : ''}>${formLabel(form)}</option>`).join('')
-            : `<option value="">${window.t ? window.t('analysis.form') : t('Forma', 'Form')}</option>`}
+            : `<option value="">${window.t ? window.t('forma regional') : t('Forma', 'Form')}</option>`}
         </select>
         <select class="analysis-select" id="analysis-ability-${idx}" ${!entry ? 'disabled' : ''}>
-          <option value="auto" ${row.ability === 'auto' ? 'selected' : ''}>${window.t ? window.t('analysis.auto') : t('Auto', 'Auto')}</option>
+          <option value="auto" ${row.ability === 'auto' ? 'selected' : ''}>${window.t ? window.t('habilidad') : t('Auto', 'Auto')}</option>
           ${abilities.map((ability) => `<option value="${ability}" ${row.ability === ability ? 'selected' : ''}>${ability}</option>`).join('')}
         </select>
       </div>
@@ -394,8 +394,11 @@
         return;
       }
       row.query = builderSlot.name_es || builderSlot.name_en || '';
-      row.formId = builderSlot.id;
-      const entry = getEntry(builderSlot.id);
+      const resolvedId = typeof builderSlot.id === 'string'
+        ? builderSlot.id
+        : normalize(builderSlot.name_en || builderSlot.name_es || '');
+      row.formId = resolvedId;
+      const entry = getEntry(resolvedId);
       row.ability = entry?.abilities?.includes(builderSlot.ability) ? builderSlot.ability : 'auto';
       row.suggestions = [];
     });

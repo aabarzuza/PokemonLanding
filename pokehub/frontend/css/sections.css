@@ -1385,6 +1385,18 @@
   color: #13151a;
   font-weight: 800;
 }
+.typecalc-mode-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
 .typecalc-picker,
 .typecalc-results-pane {
   padding: 14px 18px;

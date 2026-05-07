@@ -49,6 +49,7 @@
 
   const DEFAULT_STATE = {
     attackMode: 1,
+    defenseMode: 2,
     editing: 'defense',
     attacker: ['flying'],
     defender: ['poison', 'grass'],
@@ -61,9 +62,10 @@
   function cloneState(seed = {}) {
     return {
       attackMode: seed.attackMode || DEFAULT_STATE.attackMode,
+      defenseMode: seed.defenseMode || DEFAULT_STATE.defenseMode,
       editing: seed.editing || DEFAULT_STATE.editing,
       attacker: safeTypes(seed.attacker || DEFAULT_STATE.attacker).slice(0, seed.attackMode === 2 ? 2 : 1),
-      defender: safeTypes(seed.defender || DEFAULT_STATE.defender),
+      defender: safeTypes(seed.defender || DEFAULT_STATE.defender).slice(0, (seed.defenseMode || DEFAULT_STATE.defenseMode) === 2 ? 2 : 1),
     };
   }
 
@@ -90,7 +92,14 @@
   }
 
   function maxSelectable(state) {
-    return state.editing === 'attack' ? state.attackMode : 2;
+    return state.editing === 'attack' ? state.attackMode : state.defenseMode;
+  }
+
+  function modeLabel(state) {
+    if (state.editing === 'attack' && state.attackMode === 1) return window.LANG === 'en' ? 'Attack • Solo' : 'Ataque • Solo';
+    if (state.editing === 'attack' && state.attackMode === 2) return window.LANG === 'en' ? 'Attack • Doble' : 'Ataque • Doble';
+    if (state.editing === 'defense' && state.defenseMode === 1) return window.LANG === 'en' ? 'Defense • Solo' : 'Defensa • Solo';
+    return window.LANG === 'en' ? 'Defense • Doble' : 'Defensa • Doble';
   }
 
   function typeChip(type) {
@@ -182,15 +191,11 @@
     return `
       <aside class="typecalc-sidebar">
         <div class="typecalc-side-group">
-          <div class="typecalc-side-title">${window.t ? window.t('typecalc.attack') : 'Ataque'}</div>
-          <button class="typecalc-side-btn ${state.attackMode === 1 ? 'active' : ''}" data-typecalc-attack-mode="1" type="button">${window.t ? window.t('typecalc.single') : 'Single'}</button>
-          <button class="typecalc-side-btn ${state.attackMode === 2 ? 'active' : ''}" data-typecalc-attack-mode="2" type="button">${window.t ? window.t('typecalc.dual') : 'Dual'}</button>
-        </div>
-        <div class="typecalc-side-divider"></div>
-        <div class="typecalc-side-group">
-          <div class="typecalc-side-title">${window.t ? window.t('typecalc.defense') : 'Defensa'}</div>
-          <button class="typecalc-side-btn ${state.editing === 'defense' ? 'active' : ''}" data-typecalc-edit="defense" type="button">${window.t ? window.t('typecalc.solo') : 'Solo'}</button>
-          <button class="typecalc-side-btn ${state.editing === 'attack' ? 'active' : ''}" data-typecalc-edit="attack" type="button">${window.t ? window.t('typecalc.attack') : 'Ataque'}</button>
+          <div class="typecalc-side-title">${window.LANG === 'en' ? 'Mode' : 'Modo'}</div>
+          <button class="typecalc-side-btn ${state.editing === 'attack' && state.attackMode === 1 ? 'active' : ''}" data-typecalc-mode="attack-1" type="button">${window.t ? window.t('typecalc.attack') : 'Ataque'} · ${window.t ? window.t('typecalc.single') : 'Single'}</button>
+          <button class="typecalc-side-btn ${state.editing === 'attack' && state.attackMode === 2 ? 'active' : ''}" data-typecalc-mode="attack-2" type="button">${window.t ? window.t('typecalc.attack') : 'Ataque'} · ${window.t ? window.t('typecalc.dual') : 'Dual'}</button>
+          <button class="typecalc-side-btn ${state.editing === 'defense' && state.defenseMode === 1 ? 'active' : ''}" data-typecalc-mode="defense-1" type="button">${window.t ? window.t('typecalc.defense') : 'Defensa'} · ${window.t ? window.t('typecalc.solo') : 'Solo'}</button>
+          <button class="typecalc-side-btn ${state.editing === 'defense' && state.defenseMode === 2 ? 'active' : ''}" data-typecalc-mode="defense-2" type="button">${window.t ? window.t('typecalc.defense') : 'Defensa'} · ${window.t ? window.t('typecalc.dual') : 'Dual'}</button>
         </div>
       </aside>
     `;
@@ -206,6 +211,7 @@
         ${buildSidebar(state, compact)}
         <section class="typecalc-picker">
           <div class="typecalc-panel-title">${window.t ? window.t('typecalc.chooseTypes') : 'Elige los tipos'}</div>
+          <div class="typecalc-mode-indicator">${modeLabel(state)}</div>
           <div class="typecalc-picked-row">
             ${currentTypes.map(typeChip).join('')}
           </div>
@@ -247,6 +253,7 @@
     const params = new URLSearchParams();
     params.set('edit', state.editing);
     params.set('am', String(state.attackMode));
+    params.set('dm', String(state.defenseMode));
     params.set('atk', state.attacker.join(','));
     params.set('def', state.defender.join(','));
     return params.toString();
@@ -260,6 +267,7 @@
     return cloneState({
       editing: params.get('edit') === 'attack' ? 'attack' : 'defense',
       attackMode: Number(params.get('am')) === 2 ? 2 : 1,
+      defenseMode: Number(params.get('dm')) === 1 ? 1 : 2,
       attacker: (params.get('atk') || '').split(',').filter(Boolean),
       defender: (params.get('def') || '').split(',').filter(Boolean),
     });
@@ -286,28 +294,30 @@
         });
       });
 
-      container.querySelectorAll('[data-typecalc-attack-mode]').forEach((button) => {
+      container.querySelectorAll('[data-typecalc-mode]').forEach((button) => {
         button.addEventListener('click', () => {
-          state.attackMode = Number(button.dataset.typecalcAttackMode) || 1;
-          if (state.attackMode === 1 && state.attacker.length > 1) {
-            state.attacker = [state.attacker[0]];
+          const [editing, size] = String(button.dataset.typecalcMode || '').split('-');
+          state.editing = editing === 'attack' ? 'attack' : 'defense';
+          if (state.editing === 'attack') {
+            state.attackMode = Number(size) === 2 ? 2 : 1;
+            if (state.attackMode === 1 && state.attacker.length > 1) {
+              state.attacker = [state.attacker[0]];
+            }
+          } else {
+            state.defenseMode = Number(size) === 1 ? 1 : 2;
+            if (state.defenseMode === 1 && state.defender.length > 1) {
+              state.defender = [state.defender[0]];
+            }
           }
-          rerender();
-        });
-      });
-
-      container.querySelectorAll('[data-typecalc-edit]').forEach((button) => {
-        button.addEventListener('click', () => {
-          state.editing = button.dataset.typecalcEdit || 'defense';
           rerender();
         });
       });
 
       container.querySelector('[data-typecalc-clear]')?.addEventListener('click', () => {
         if (state.editing === 'attack') {
-          state.attacker = ['flying'];
+          state.attacker = state.attackMode === 2 ? ['flying', 'fighting'] : ['flying'];
         } else {
-          state.defender = ['poison', 'grass'];
+          state.defender = state.defenseMode === 2 ? ['poison', 'grass'] : ['grass'];
         }
         rerender();
       });

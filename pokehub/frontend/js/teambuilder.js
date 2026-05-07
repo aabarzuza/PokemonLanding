@@ -399,7 +399,7 @@ async function selectPokemonFromBackend(nameEn, id, nameEs, slotIdx) {
 
     TEAM[slotIdx].name_en  = pData.id || nameEn;
     TEAM[slotIdx].name_es  = pData.name || nameEs;
-    TEAM[slotIdx].id       = pData.num || id;
+    TEAM[slotIdx].id       = pData.id || id;
     TEAM[slotIdx].sprite   = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pData.num||id}.png`;
     TEAM[slotIdx].types    = [pData.type1, pData.type2].filter(Boolean);
     if (!TEAM[slotIdx].ability && pData.ability1) TEAM[slotIdx].ability = pData.ability1;
@@ -1083,12 +1083,15 @@ function importShowdown(text) {
 
     // Línea 1: Nombre @ Objeto
     const first = lines[0];
+    const lineWithoutItem = first.includes(' @ ') ? first.split(' @ ')[0].trim() : first.trim();
+    const speciesMatch = lineWithoutItem.match(/\(([^)]+)\)\s*$/);
+    const speciesName = speciesMatch ? speciesMatch[1].trim() : lineWithoutItem;
     if (first.includes(' @ ')) {
-      const [p, item] = first.split(' @ ');
-      slot.name_en = p.trim().toLowerCase().replace(/[ ]/g,'-');
+      const [, item] = first.split(' @ ');
+      slot.name_en = speciesName.toLowerCase().replace(/[ ]/g,'-');
       slot.item    = item.trim();
     } else {
-      slot.name_en = first.trim().toLowerCase().replace(/[ ]/g,'-');
+      slot.name_en = speciesName.toLowerCase().replace(/[ ]/g,'-');
     }
     slot.name_es = slot.name_en;
 
@@ -1110,7 +1113,7 @@ function importShowdown(text) {
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (!data) return;
-          TEAM[i].id     = data.num;
+          TEAM[i].id     = data.id || slot.name_en;
           TEAM[i].sprite = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.num}.png`;
           TEAM[i].types  = [data.type1, data.type2].filter(Boolean);
           TEAM[i].name_es = data.name || TEAM[i].name_es;
